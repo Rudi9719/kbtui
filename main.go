@@ -34,6 +34,7 @@ func main() {
 		}
 	} else {
 		fmt.Println("You are not logged in.")
+		return
 	}
 
 }
