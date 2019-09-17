@@ -12,27 +12,34 @@ import (
 var k = keybase.NewKeybase()
 var teamOrUser = "home"
 var channel = ""
+var myUsername = ""
 
 func main() {
-	kbtui, err := gocui.NewGui(gocui.OutputNormal)
-	if err != nil {
-		log.Panicln(err)
-	}
-	defer kbtui.Close()
+	if k.LoggedIn == true {
+		kbtui, err := gocui.NewGui(gocui.OutputNormal)
+		if err != nil {
+			log.Panicln(err)
+		}
+		defer kbtui.Close()
 
-	kbtui.SetManagerFunc(layout)
-	go loginGreeter(kbtui)
-	go populateList(kbtui)
+		kbtui.SetManagerFunc(layout)
+		go loginGreeter(kbtui)
+		go populateList(kbtui)
+		go updateChatWindow(kbtui)
+		if err := initKeybindings(kbtui); err != nil {
+			log.Fatalln(err)
+		}
+		if err := kbtui.MainLoop(); err != nil && err != gocui.ErrQuit {
+			log.Panicln(err)
+		}
+	} else {
+		fmt.Println("You are not logged in.")
+	}
 
-	if err := initKeybindings(kbtui); err != nil {
-		log.Fatalln(err)
-	}
-	if err := kbtui.MainLoop(); err != nil && err != gocui.ErrQuit {
-		log.Panicln(err)
-	}
 }
 func loginGreeter(g *gocui.Gui) {
-	messg := "Welcome " + k.Username + "!"
+	myUsername = k.Username
+	messg := "Welcome " + myUsername+ "!"
 	printToView(g, "Chat", messg)
 }
 func sendToUser(msg string) {
@@ -55,7 +62,7 @@ func populateList(g *gocui.Gui) {
 		} else {
 			clearView(g, "List")
 			for _, s := range testVar.Result.Conversations {
-				printToView(g, "List", s.Channel.Name + "\n")
+				printToView(g, "List", s.Channel.Name)
 			}
 		}
 		time.Sleep(5 * time.Second)
@@ -83,7 +90,7 @@ func printToView(kbtui *gocui.Gui, viewName string, message string) {
 		if err != nil {
 			return err
 		} else {
-			fmt.Fprintf(updatingView, message)
+			fmt.Fprintf(updatingView, message + "\n")
 		}
 		return nil
 	})
@@ -149,12 +156,42 @@ func initKeybindings(g *gocui.Gui) error {
 	}
 	return nil
 }
-func updateChatWindow() {
+func updateChatWindow(g *gocui.Gui) {
+	k.Run(func(api keybase.ChatAPI) {
+		handleMessage(api, g)
+	})
 
+}
+
+func handleMessage(api keybase.ChatAPI, g *gocui.Gui) {
+	if api.Msg.Content.Type == "text" {
+		if strings.Contains(api.Msg.Content.Text.Body, myUsername) || strings.Contains(api.Msg.Channel.Name, myUsername) {
+			if api.Msg.Sender.Username != myUsername {
+				message := api.Msg.Content.Text.Body
+				sender := api.Msg.Sender.Username
+				team := api.Msg.Channel.Name
+				channel := api.Msg.Channel.TopicName
+				printMe := "@" + team + "#" + channel + " " + sender + ": " + message
+				printToView(g, "Feed", printMe)
+			}
+		}
+		if strings.Contains(api.Msg.Channel.Name, teamOrUser) {
+			if channel != "" && api.Msg.Channel.TopicName == channel {
+
+			} else {
+				message := api.Msg.Content.Text.Body
+				sender := api.Msg.Sender.Username
+				printToView(g, "Chat", sender+": "+message)
+			}
+		}
+	}
 }
 func handleInput(g *gocui.Gui) error {
 	inputString, _ := getInputString(g)
-	command := inputString[:2]
+	command := ""
+	if len(inputString) > 2 {
+		command = inputString[:2]
+	}
 	if "/q" == command {
 		return gocui.ErrQuit
 	} else if "/j" == command {
@@ -163,13 +200,12 @@ func handleInput(g *gocui.Gui) error {
 		if len(arr) > 2 {
 			teamOrUser = arr[1]
 			channel = arr[2]
-			printToView(g, "Feed", "You have joined: @" + teamOrUser + "#" + channel + "\n")
+			printToView(g, "Feed", "You have joined: @" + teamOrUser + "#" + channel)
 		} else {
 			teamOrUser = arr[1]
 			channel = ""
-			printToView(g, "Feed", "You have joined: @" + teamOrUser + "\n")
+			printToView(g, "Feed", "You have joined: @" + teamOrUser)
 		}
-		updateChatWindow()
 	} else {
 		if channel == "" {
 			sendToUser(inputString)
