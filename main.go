@@ -14,6 +14,7 @@ func main() {
 	defer kbtui.Close()
 
 	kbtui.SetManagerFunc(layout)
+	printToView(kbtui, "Chat", "Test updating chat window")
 
 	if err := kbtui.SetKeybinding("", gocui.KeyCtrlC, gocui.ModNone, quit); err != nil {
 		log.Panicln(err)
@@ -22,6 +23,18 @@ func main() {
 	if err := kbtui.MainLoop(); err != nil && err != gocui.ErrQuit {
 		log.Panicln(err)
 	}
+}
+
+func printToView(kbtui *gocui.Gui, viewName string, message string) {
+	kbtui.Update(func(g *gocui.Gui) error {
+		inputView, err := kbtui.View(viewName)
+		if err != nil {
+			return err
+		} else {
+			_, _ = fmt.Fprintf(inputView, message)
+		}
+		return nil
+	})
 }
 
 func layout(g *gocui.Gui) error {
@@ -48,7 +61,7 @@ func layout(g *gocui.Gui) error {
 		if err4 != gocui.ErrUnknownView {
 			return err4
 		}
-		fmt.Fprintln(listView, "Lists")
+		fmt.Fprintf(listView, "Lists\nWindow")
 	}
 	return nil
 }
