@@ -16,7 +16,9 @@ func main() {
 	defer kbtui.Close()
 
 	kbtui.SetManagerFunc(layout)
-
+	if err := initKeybindings(kbtui); err != nil {
+		log.Fatalln(err)
+	}
 	go testAsync(kbtui)
 	if err := kbtui.SetKeybinding("", gocui.KeyCtrlC, gocui.ModNone, quit); err != nil {
 		log.Panicln(err)
@@ -42,6 +44,8 @@ func clearView(kbtui *gocui.Gui, viewName string) {
 			return err
 		} else {
 			inputView.Clear()
+			inputView.SetCursor(0, 0)
+			inputView.SetOrigin(0, 0)
 		}
 		return nil
 	})
@@ -83,7 +87,6 @@ func layout(g *gocui.Gui) error {
 		 	return err
 		 }
 		inputView.Editable = true
-		fmt.Fprintln(inputView, "Input Window")
 	}
 	if listView, err4 := g.SetView("List", 0, 0, 10, maxY-1); err4 != nil {
 		if err4 != gocui.ErrUnknownView {
@@ -93,7 +96,33 @@ func layout(g *gocui.Gui) error {
 	}
 	return nil
 }
+func getInputString(g *gocui.Gui) (string, error) {
+	inputView, _ := g.View("Input")
+	return inputView.Line(0)
+}
+func initKeybindings(g *gocui.Gui) error {
+	if err := g.SetKeybinding("", gocui.KeyCtrlC, gocui.ModNone,
+		func(g *gocui.Gui, v *gocui.View) error {
+			return gocui.ErrQuit
+		}); err != nil {
+		return err
+	}
+	if err := g.SetKeybinding("Input", gocui.KeyEnter, gocui.ModNone,
+		func(g *gocui.Gui, v *gocui.View) error {
+			handleInput(g)
+			return nil
+		}); err != nil {
+		return err
+	}
+	return nil
+}
 
+func handleInput(g *gocui.Gui) {
+	printToView(g, "Chat", "Enter was hit!\n")
+	inputString, _ := getInputString(g)
+	printToView(g, "Chat", inputString+"\n")
+	clearView(g, "Input")
+}
 func quit(g *gocui.Gui, v *gocui.View) error {
 	return gocui.ErrQuit
 }
