@@ -35,7 +35,21 @@ func main() {
 		log.Panicln(err)
 	}
 }
-
+func populateChat(g *gocui.Gui) {
+	xMax, _ := g.Size()
+	chat := k.NewChat(channel)
+	if api, err := chat.Read(xMax/5); err != nil {
+		log.Fatal(err)
+	} else {
+		for _, message := range api.Result.Messages {
+			if message.Msg.Content.Type == "text" {
+				msgSender := message.Msg.Sender.Username
+				msgBody := message.Msg.Content.Text.Body
+				printToView(g, "Chat", fmt.Sprintf("%s: %s", msgSender, msgBody))
+			}
+		}
+	}
+}
 func sendChat(message string) {
 	chat := k.NewChat(channel)
 	chat.Send(message)
@@ -64,6 +78,7 @@ func clearView(kbtui *gocui.Gui, viewName string) {
 		}
 		return nil
 	})
+
 }
 
 func printToView(kbtui *gocui.Gui, viewName string, message string) {
@@ -192,11 +207,13 @@ func handleInput(g *gocui.Gui) error {
 			channel.TopicName = command[2]
 			printToView(g, "Feed", fmt.Sprintf("You have joined: @%s#%s", channel.Name, channel.TopicName))
 			clearView(g, "Chat")
+			go populateChat(g)
 		} else if len(command) == 2 {
 			channel.MembersType = keybase.USER
 			channel.Name = command[1]
 			printToView(g, "Feed", fmt.Sprintf("You have joined: @%s", channel.Name))
 			clearView(g, "Chat")
+			go populateChat(g)
 		} else {
 			printToView(g, "Feed", "To join a team use /j <team> <channel>")
 			printToView(g, "Feed", "To join a PM use /j <user>")
