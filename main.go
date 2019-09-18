@@ -159,16 +159,18 @@ func handleMessage(api keybase.ChatAPI, g *gocui.Gui) {
 		msgBody := api.Msg.Content.Text.Body
 		msgSender := api.Msg.Sender.Username
 		channelName := api.Msg.Channel.Name
-		if api.Msg.Channel.MembersType == keybase.TEAM {
-			topicName := api.Msg.Channel.TopicName
-			for _, m := range api.Msg.Content.Text.UserMentions {
-				if m.Text == k.Username {
-					printToView(g, "Feed", fmt.Sprintf("[ %s#%s ] %s: %s", channelName, topicName, msgSender, msgBody))
-					break
+		if msgSender != k.Username {
+			if api.Msg.Channel.MembersType == keybase.TEAM {
+				topicName := api.Msg.Channel.TopicName
+				for _, m := range api.Msg.Content.Text.UserMentions {
+					if m.Text == k.Username {
+						printToView(g, "Feed", fmt.Sprintf("[ %s#%s ] %s: %s", channelName, topicName, msgSender, msgBody))
+						break
+					}
 				}
+			} else {
+				printToView(g, "Feed", fmt.Sprintf("[ %s ] %s: %s", channelName, msgSender, msgBody))
 			}
-		} else {
-			printToView(g, "Feed", fmt.Sprintf("[ %s ] %s: %s", channelName, msgSender, msgBody))
 		}
 		if api.Msg.Channel.MembersType == channel.MembersType && cleanChannelName(api.Msg.Channel.Name) == channel.Name {
 			printToView(g, "Chat", fmt.Sprintf("%s: %s", msgSender, msgBody))
