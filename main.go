@@ -188,16 +188,17 @@ func handleInput(g *gocui.Gui) error {
 	case "/q":
 		return gocui.ErrQuit
 	case "/j":
-		clearView(g, "Chat")
 		if len(command) == 3 {
 			channel.MembersType = keybase.TEAM
 			channel.Name = command[1]
 			channel.TopicName = command[2]
 			printToView(g, "Feed", fmt.Sprintf("You have joined: @%s#%s", channel.Name, channel.TopicName))
+			clearView(g, "Chat")
 		} else if len(command) == 2 {
 			channel.MembersType = keybase.USER
 			channel.Name = command[1]
 			printToView(g, "Feed", fmt.Sprintf("You have joined: @%s", channel.Name))
+			clearView(g, "Chat")
 		} else {
 			printToView(g, "Feed", "To join a team use /j <team> <channel>")
 			printToView(g, "Feed", "To join a PM use /j <user>")
