@@ -202,7 +202,7 @@ func handleInput(g *gocui.Gui) error {
 			printToView(g, "Feed", "To join a PM use /j <user>")
 		}
 	default:
-		sendChat(inputString)
+		go sendChat(inputString)
 	}
 	clearView(g, "Input")
 	return nil
