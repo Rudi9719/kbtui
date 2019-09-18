@@ -41,6 +41,7 @@ func populateChat(g *gocui.Gui) {
 		log.Fatal(err)
 	} else {
 		var printMe []string
+		var actuallyPrintMe string
 		for _, message := range api.Result.Messages {
 			if message.Msg.Content.Type == "text" {
 				msgSender := message.Msg.Sender.Username
@@ -50,8 +51,9 @@ func populateChat(g *gocui.Gui) {
 			}
 		}
 		for i := len(printMe) - 1; i >= 0; i-- {
-			printToView(g, "Chat", printMe[i])
+			actuallyPrintMe += printMe[i] + "\n"
 		}
+		printToView(g, "Chat", actuallyPrintMe)
 	}
 }
 
