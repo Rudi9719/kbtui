@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"strings"
-	"time"
 
 	"github.com/jroimartin/gocui"
 	"samhofi.us/x/keybase"
@@ -43,18 +42,14 @@ func sendChat(message string) {
 }
 
 func populateList(g *gocui.Gui) {
-	for {
-		if testVar, err := k.ChatList(); err != nil {
-			log.Fatalln(err)
-		} else {
-			clearView(g, "List")
-			for _, s := range testVar.Result.Conversations {
-				printToView(g, "List", s.Channel.Name)
-			}
+	if testVar, err := k.ChatList(); err != nil {
+		log.Fatalln(err)
+	} else {
+		clearView(g, "List")
+		for _, s := range testVar.Result.Conversations {
+			printToView(g, "List", s.Channel.Name)
 		}
-		time.Sleep(5 * time.Second)
 	}
-
 }
 
 func clearView(kbtui *gocui.Gui, viewName string) {
@@ -159,6 +154,7 @@ func cleanChannelName(c string) string {
 }
 
 func handleMessage(api keybase.ChatAPI, g *gocui.Gui) {
+	go populateList(g)
 	if api.Msg.Content.Type == "text" {
 		msgBody := api.Msg.Content.Text.Body
 		msgSender := api.Msg.Sender.Username
