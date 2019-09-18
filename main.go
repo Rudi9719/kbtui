@@ -36,20 +36,25 @@ func main() {
 	}
 }
 func populateChat(g *gocui.Gui) {
-	xMax, _ := g.Size()
 	chat := k.NewChat(channel)
-	if api, err := chat.Read(xMax/5); err != nil {
+	if api, err := chat.Read(15); err != nil {
 		log.Fatal(err)
 	} else {
+		var printMe []string
 		for _, message := range api.Result.Messages {
 			if message.Msg.Content.Type == "text" {
 				msgSender := message.Msg.Sender.Username
 				msgBody := message.Msg.Content.Text.Body
-				printToView(g, "Chat", fmt.Sprintf("%s: %s", msgSender, msgBody))
+				newMessage := fmt.Sprintf("%s: %s", msgSender, msgBody)
+				printMe = append(printMe, newMessage)
 			}
+		}
+		for i := len(printMe) - 1; i >= 0; i-- {
+			printToView(g, "Chat", printMe[i])
 		}
 	}
 }
+
 func sendChat(message string) {
 	chat := k.NewChat(channel)
 	chat.Send(message)
