@@ -85,7 +85,7 @@ func printToView(kbtui *gocui.Gui, viewName string, message string) {
 
 func layout(g *gocui.Gui) error {
 	maxX, maxY := g.Size()
-	if feedView, err := g.SetView("Feed", 12, 0, maxX-1, maxY/5); err != nil {
+	if feedView, err := g.SetView("Feed", maxX/2-maxX/3, 0, maxX-1, maxY/5); err != nil {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
@@ -93,7 +93,7 @@ func layout(g *gocui.Gui) error {
 		feedView.Wrap = true
 		fmt.Fprintln(feedView, "Feed Window - If you are mentioned or receive a PM it will show here")
 	}
-	if chatView, err2 := g.SetView("Chat", 12, maxY/5+1, maxX-1, maxY-5); err2 != nil {
+	if chatView, err2 := g.SetView("Chat", maxX/2-maxX/3, maxY/5+1, maxX-1, maxY-5); err2 != nil {
 		if err2 != gocui.ErrUnknownView {
 			return err2
 		}
@@ -105,7 +105,7 @@ func layout(g *gocui.Gui) error {
 		fmt.Fprintln(chatView, "          Please note: small teams only have #general")
 		fmt.Fprintln(chatView, "/q - Exit")
 	}
-	if inputView, err3 := g.SetView("Input", 12, maxY-4, maxX-1, maxY-1); err3 != nil {
+	if inputView, err3 := g.SetView("Input", maxX/2-maxX/3, maxY-4, maxX-1, maxY-1); err3 != nil {
 		if err3 != gocui.ErrUnknownView {
 			return err3
 		}
@@ -115,7 +115,7 @@ func layout(g *gocui.Gui) error {
 		inputView.Editable = true
 		inputView.Wrap = true
 	}
-	if listView, err4 := g.SetView("List", 0, 0, 10, maxY-1); err4 != nil {
+	if listView, err4 := g.SetView("List", 0, 0, maxX/2-maxX/3-1, maxY-1); err4 != nil {
 		if err4 != gocui.ErrUnknownView {
 			return err4
 		}
