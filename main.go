@@ -98,7 +98,7 @@ func printToView(kbtui *gocui.Gui, viewName string, message string) {
 		if err != nil {
 			return err
 		} else {
-			fmt.Fprintf(updatingView, message+"\n")
+			fmt.Fprintf(updatingView, "%s\n", message)
 		}
 		return nil
 	})
