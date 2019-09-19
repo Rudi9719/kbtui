@@ -136,6 +136,7 @@ func layout(g *gocui.Gui) error {
 		}
 		inputView.Editable = true
 		inputView.Wrap = true
+		g.Cursor = true
 	}
 	if listView, err4 := g.SetView("List", 0, 0, maxX/2-maxX/3-1, maxY-1); err4 != nil {
 		if err4 != gocui.ErrUnknownView {
