@@ -38,7 +38,8 @@ func main() {
 }
 func populateChat(g *gocui.Gui) {
 	chat := k.NewChat(channel)
-	if api, err := chat.Read(15); err != nil {
+	maxX, _ := g.Size()
+	if api, err := chat.Read(maxX/2); err != nil {
 		log.Fatal(err)
 	} else {
 		var printMe []string
