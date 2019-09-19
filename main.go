@@ -11,6 +11,7 @@ import (
 
 var k = keybase.NewKeybase()
 var channel keybase.Channel
+var channels [] keybase.Channel
 
 func main() {
 	if !k.LoggedIn {
@@ -51,7 +52,10 @@ func populateChat(g *gocui.Gui) {
 			}
 		}
 		for i := len(printMe) - 1; i >= 0; i-- {
-			actuallyPrintMe += printMe[i] + "\n"
+			actuallyPrintMe += printMe[i]
+			if i > 0 {
+				actuallyPrintMe += "\n"
+			}
 		}
 		printToView(g, "Chat", actuallyPrintMe)
 	}
