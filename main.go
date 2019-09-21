@@ -12,7 +12,7 @@ import (
 var k = keybase.NewKeybase()
 var channel keybase.Channel
 var channels [] keybase.Channel
-
+var stream bool = false
 func main() {
 	if !k.LoggedIn {
 		fmt.Println("You are not logged in.")
@@ -124,6 +124,7 @@ func layout(g *gocui.Gui) error {
 		fmt.Fprintf(chatView, "Your chats will appear here.\nSupported commands are as follows:\n")
 		fmt.Fprintln(chatView, "/j $username - Open your chat with $username")
 		fmt.Fprintln(chatView, "/j $team $channel - Open $channel from $team")
+		fmt.Fprintln(chatView, "/s  - Experimental: View all incoming messages from everywhere.")
 		fmt.Fprintln(chatView, "          Please note: small teams only have #general")
 		fmt.Fprintln(chatView, "/q - Exit")
 	}
@@ -186,21 +187,30 @@ func handleMessage(api keybase.ChatAPI, g *gocui.Gui) {
 		msgBody := api.Msg.Content.Text.Body
 		msgSender := api.Msg.Sender.Username
 		channelName := api.Msg.Channel.Name
-		if msgSender != k.Username {
+		if !stream {
+			if msgSender != k.Username {
+				if api.Msg.Channel.MembersType == keybase.TEAM {
+					topicName := api.Msg.Channel.TopicName
+					for _, m := range api.Msg.Content.Text.UserMentions {
+						if m.Text == k.Username {
+							printToView(g, "Feed", fmt.Sprintf("[ %s#%s ] %s: %s", channelName, topicName, msgSender, msgBody))
+							break
+						}
+					}
+				} else {
+					printToView(g, "Feed", fmt.Sprintf("[ %s ] %s: %s", cleanChannelName(channelName), msgSender, msgBody))
+				}
+			}
+			if api.Msg.Channel.MembersType == channel.MembersType && cleanChannelName(api.Msg.Channel.Name) == channel.Name {
+				printToView(g, "Chat", fmt.Sprintf("[%s]: %s", msgSender, msgBody))
+			}
+		} else {
 			if api.Msg.Channel.MembersType == keybase.TEAM {
 				topicName := api.Msg.Channel.TopicName
-				for _, m := range api.Msg.Content.Text.UserMentions {
-					if m.Text == k.Username {
-						printToView(g, "Feed", fmt.Sprintf("[ %s#%s ] %s: %s", channelName, topicName, msgSender, msgBody))
-						break
-					}
-				}
+				printToView(g, "Chat", fmt.Sprintf("@%s#%s [%s]: %s", channelName, topicName, msgSender, msgBody))
 			} else {
-				printToView(g, "Feed", fmt.Sprintf("[ %s ] %s: %s", cleanChannelName(channelName), msgSender, msgBody))
+				printToView(g, "Chat", fmt.Sprintf("PM @%s [%s]: %s", cleanChannelName(channelName), msgSender, msgBody))
 			}
-		}
-		if api.Msg.Channel.MembersType == channel.MembersType && cleanChannelName(api.Msg.Channel.Name) == channel.Name {
-			printToView(g, "Chat", fmt.Sprintf("[%s]: %s", msgSender, msgBody))
 		}
 	}
 }
@@ -213,6 +223,7 @@ func handleInput(g *gocui.Gui) error {
 	case "/q":
 		return gocui.ErrQuit
 	case "/j":
+		stream = false
 		if len(command) == 3 {
 			channel.MembersType = keybase.TEAM
 			channel.Name = command[1]
@@ -231,6 +242,10 @@ func handleInput(g *gocui.Gui) error {
 			printToView(g, "Feed", "To join a team use /j <team> <channel>")
 			printToView(g, "Feed", "To join a PM use /j <user>")
 		}
+	case "/s":
+		clearView(g, "Chat")
+		stream = true
+		printToView(g, "Feed", "You have begun viewing the formatted stream.")
 	default:
 		go sendChat(inputString)
 	}
