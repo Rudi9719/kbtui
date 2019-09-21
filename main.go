@@ -48,7 +48,7 @@ func populateChat(g *gocui.Gui) {
 			if message.Msg.Content.Type == "text" {
 				msgSender := message.Msg.Sender.Username
 				msgBody := message.Msg.Content.Text.Body
-				newMessage := fmt.Sprintf("%s: %s", msgSender, msgBody)
+				newMessage := fmt.Sprintf("[%s]: %s", msgSender, msgBody)
 				printMe = append(printMe, newMessage)
 			}
 		}
@@ -200,7 +200,7 @@ func handleMessage(api keybase.ChatAPI, g *gocui.Gui) {
 			}
 		}
 		if api.Msg.Channel.MembersType == channel.MembersType && cleanChannelName(api.Msg.Channel.Name) == channel.Name {
-			printToView(g, "Chat", fmt.Sprintf("%s: %s", msgSender, msgBody))
+			printToView(g, "Chat", fmt.Sprintf("[%s]: %s", msgSender, msgBody))
 		}
 	}
 }
@@ -223,6 +223,7 @@ func handleInput(g *gocui.Gui) error {
 		} else if len(command) == 2 {
 			channel.MembersType = keybase.USER
 			channel.Name = command[1]
+			channel.TopicName = ""
 			printToView(g, "Feed", fmt.Sprintf("You have joined: @%s", channel.Name))
 			clearView(g, "Chat")
 			go populateChat(g)
