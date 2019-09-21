@@ -21,7 +21,7 @@ func main() {
 
 	kbtui, err := gocui.NewGui(gocui.OutputNormal)
 	if err != nil {
-		log.Panicln(err)
+		log.Printf(err.Error())
 	}
 	defer kbtui.Close()
 	kbtui.SetManagerFunc(layout)
@@ -30,17 +30,17 @@ func main() {
 	go populateList(kbtui)
 	go updateChatWindow(kbtui)
 	if err := initKeybindings(kbtui); err != nil {
-		log.Fatalln(err)
+		log.Printf(err.Error())
 	}
 	if err := kbtui.MainLoop(); err != nil && err != gocui.ErrQuit {
-		log.Panicln(err)
+		log.Printf(err.Error())
 	}
 }
 func populateChat(g *gocui.Gui) {
 	chat := k.NewChat(channel)
 	maxX, _ := g.Size()
 	if api, err := chat.Read(maxX/2); err != nil {
-		log.Fatal(err)
+		log.Printf(err.Error())
 	} else {
 		var printMe []string
 		var actuallyPrintMe string
@@ -69,7 +69,7 @@ func sendChat(message string) {
 
 func populateList(g *gocui.Gui) {
 	if testVar, err := k.ChatList(); err != nil {
-		log.Fatalln(err)
+		log.Printf(err.Error())
 	} else {
 		clearView(g, "List")
 		for _, s := range testVar.Result.Conversations {
@@ -142,7 +142,6 @@ func layout(g *gocui.Gui) error {
 		if err4 != gocui.ErrUnknownView {
 			return err4
 		}
-		listView.Wrap = true
 		fmt.Fprintf(listView, "Lists\nWindow\nTo view\n activity")
 	}
 	return nil
