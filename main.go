@@ -198,7 +198,7 @@ func handleMessage(api keybase.ChatAPI, g *gocui.Gui) {
 						}
 					}
 				} else {
-					printToView(g, "Feed", fmt.Sprintf("[ %s ] %s: %s", cleanChannelName(channelName), msgSender, msgBody))
+					printToView(g, "Feed", fmt.Sprintf("PM from @%s: %s", cleanChannelName(channelName), msgBody))
 				}
 			}
 			if api.Msg.Channel.MembersType == channel.MembersType && cleanChannelName(api.Msg.Channel.Name) == channel.Name {
