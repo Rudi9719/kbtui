@@ -40,6 +40,7 @@ func main() {
 	}
 }
 func populateChat(g *gocui.Gui) {
+	lastMessage.ID = 0
 	chat := k.NewChat(channel)
 	maxX, _ := g.Size()
 	if api, err := chat.Read(maxX / 2); err != nil {
@@ -47,9 +48,11 @@ func populateChat(g *gocui.Gui) {
 	} else {
 		var printMe []string
 		var actuallyPrintMe string
-		lastMessage.ID = api.Result.Messages[0].Msg.ID
 		for _, message := range api.Result.Messages {
 			if message.Msg.Content.Type == "text" {
+				if lastMessage.ID < 1 {
+					lastMessage.ID = message.Msg.ID
+				}
 				msgSender := message.Msg.Sender.Username
 				msgBody := message.Msg.Content.Text.Body
 				newMessage := fmt.Sprintf("[%s]: %s", msgSender, msgBody)
