@@ -13,7 +13,7 @@ import (
 var k = keybase.NewKeybase()
 var channel keybase.Channel
 var channels [] keybase.Channel
-var stream bool = false
+var stream = false
 var lastMessage keybase.ChatAPI
 
 func main() {
