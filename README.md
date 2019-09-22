@@ -1,8 +1,10 @@
 # kbtui
-Keybase TUI written in Go
+Keybase TUI written in Go using [@dxb](https://keybase.io/dxb)'s 
+Keybase bot framework.
+
 
 ## Features
-* Dark Mode (or rather based on Terminal Theme)
+* Dark Mode (or rather mode based on Terminal Theme)
 * Read and reply to messages
 * Feed view to see mentions
 * Stream view to see all incoming messages
@@ -16,3 +18,17 @@ Keybase TUI written in Go
 * Twitter-style feed reading public messages
 * Track multiple conversations at once
 * Auto #general teams when not given a channel
+
+### Building and Running
+```
+go get ./
+go build
+./kbtui
+```
+Or
+```
+go get ./
+go run main.go
+```
+Occasionally when @dxb updates his API it will be necessary to run 
+`go get -u ./`
