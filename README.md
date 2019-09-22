@@ -11,10 +11,10 @@ It started as a joke, then a bash script, and now here it is!
 * Stream view to see all incoming messages
 * List view to show activity
 * Chat view to interact with the current channel
+* Marks unread messages in the List view
 
 ## Todo
 * Reactions to messages
-* Mark unread messages in the List view
 * Pretty format headers in List view
 * Twitter-style feed reading public messages
 * Track multiple conversations at once

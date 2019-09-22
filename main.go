@@ -82,11 +82,17 @@ func populateList(g *gocui.Gui) {
 			if s.Channel.MembersType == keybase.TEAM {
 				recentChannelsCount++
 				if recentChannelsCount <= ((maxY - 2) / 3) {
+					if s.Unread {
+						recentChannels += "*"
+					}
 					recentChannels += fmt.Sprintf("%s\n\t#%s\n", s.Channel.Name, s.Channel.TopicName)
 				}
 			} else {
 				recentPMsCount++
 				if recentPMsCount <= ((maxY- 2) / 3) {
+					if s.Unread {
+						recentPMs += "*"
+					}
 					recentPMs += fmt.Sprintf("%s\n", cleanChannelName(s.Channel.Name))
 				}
 			}
