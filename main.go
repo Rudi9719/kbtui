@@ -245,6 +245,11 @@ func handleMessage(api keybase.ChatAPI, g *gocui.Gui) {
 			}
 		}
 		lastMessage = api
+	} else {
+		//TODO: For edit/delete run this
+		if api.Msg.Channel.MembersType == channel.MembersType && cleanChannelName(api.Msg.Channel.Name) == channel.Name {
+			go populateChat(g)
+		}
 	}
 }
 func reactToMessage(reaction string) {
