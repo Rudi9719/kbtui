@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"time"
 
 	"github.com/jroimartin/gocui"
 	"samhofi.us/x/keybase"
@@ -12,7 +13,9 @@ import (
 var k = keybase.NewKeybase()
 var channel keybase.Channel
 var channels [] keybase.Channel
+//var lastListTs = time.Now()
 var stream bool = false
+//var updates = 0
 func main() {
 	if !k.LoggedIn {
 		fmt.Println("You are not logged in.")
@@ -21,7 +24,7 @@ func main() {
 
 	kbtui, err := gocui.NewGui(gocui.OutputNormal)
 	if err != nil {
-		log.Printf(err.Error())
+		log.Printf("%+v", err)
 	}
 	defer kbtui.Close()
 	kbtui.SetManagerFunc(layout)
@@ -30,17 +33,17 @@ func main() {
 	go populateList(kbtui)
 	go updateChatWindow(kbtui)
 	if err := initKeybindings(kbtui); err != nil {
-		log.Printf(err.Error())
+		log.Printf("%+v", err)
 	}
 	if err := kbtui.MainLoop(); err != nil && err != gocui.ErrQuit {
-		log.Printf(err.Error())
+		log.Printf("%+v", err)
 	}
 }
 func populateChat(g *gocui.Gui) {
 	chat := k.NewChat(channel)
 	maxX, _ := g.Size()
 	if api, err := chat.Read(maxX/2); err != nil {
-		log.Printf(err.Error())
+		log.Printf("%+v", err)
 	} else {
 		var printMe []string
 		var actuallyPrintMe string
@@ -68,13 +71,34 @@ func sendChat(message string) {
 }
 
 func populateList(g *gocui.Gui) {
+	//if time.Since(lastListTs) < (10 * time.Second) && updates != 1{
+	//	return
+	//}
+	//lastListTs = time.Now()
+	_, maxY := g.Size()
 	if testVar, err := k.ChatList(); err != nil {
-		log.Printf(err.Error())
+		log.Printf("%+v",err)
 	} else {
 		clearView(g, "List")
+		var recentPMs = "---[PMs]---\n"
+		var recentPMsCount = 0
+		var recentChannels = "---[Teams]---\n"
+		var recentChannelsCount = 0
 		for _, s := range testVar.Result.Conversations {
-			printToView(g, "List", s.Channel.Name)
+			if s.Channel.MembersType == keybase.TEAM {
+				recentChannelsCount++
+				if recentChannelsCount <= ((maxY - 2) / 3) {
+					recentChannels += fmt.Sprintf("%s\n\t#%s\n", s.Channel.Name, s.Channel.TopicName)
+				}
+			} else {
+				recentPMsCount++
+				if recentPMsCount <= ((maxY- 2) / 3) {
+					recentPMs += fmt.Sprintf("%s\n", cleanChannelName(s.Channel.Name))
+				}
+			}
 		}
+		time.Sleep(1 * time.Millisecond)
+		printToView(g, "List", fmt.Sprintf("%s%s", recentPMs, recentChannels))
 	}
 }
 
@@ -182,8 +206,8 @@ func cleanChannelName(c string) string {
 }
 
 func handleMessage(api keybase.ChatAPI, g *gocui.Gui) {
-	go populateList(g)
 	if api.Msg.Content.Type == "text" {
+		go populateList(g)
 		msgBody := api.Msg.Content.Text.Body
 		msgSender := api.Msg.Sender.Username
 		channelName := api.Msg.Channel.Name
