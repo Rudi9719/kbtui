@@ -1,6 +1,7 @@
 # kbtui
 Keybase TUI written in Go using [@dxb](https://keybase.io/dxb)'s 
-Keybase bot framework.
+Keybase [bot framework](https://godoc.org/samhofi.us/x/keybase).
+It started as a joke, then a bash script, and now here it is!
 
 
 ## Features
