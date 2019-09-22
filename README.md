@@ -15,6 +15,7 @@ It started as a joke, then a bash script, and now here it is!
 
 ## Todo
 * Reactions to messages
+* Message editing
 * Pretty format headers in List view from window size
 * Twitter-style feed reading public messages
 * Track multiple conversations at once

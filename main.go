@@ -14,6 +14,7 @@ var k = keybase.NewKeybase()
 var channel keybase.Channel
 var channels [] keybase.Channel
 var stream bool = false
+var lastMessage keybase.ChatAPI
 func main() {
 	if !k.LoggedIn {
 		fmt.Println("You are not logged in.")
@@ -45,8 +46,13 @@ func populateChat(g *gocui.Gui) {
 	} else {
 		var printMe []string
 		var actuallyPrintMe string
+		firstmsg := true
 		for _, message := range api.Result.Messages {
 			if message.Msg.Content.Type == "text" {
+				if (firstmsg) {
+					firstmsg = false
+					lastMessage.ID = message.Msg.ID
+				}
 				msgSender := message.Msg.Sender.Username
 				msgBody := message.Msg.Content.Text.Body
 				newMessage := fmt.Sprintf("[%s]: %s", msgSender, msgBody)
@@ -238,9 +244,13 @@ func handleMessage(api keybase.ChatAPI, g *gocui.Gui) {
 				printToView(g, "Chat", fmt.Sprintf("PM @%s [%s]: %s", cleanChannelName(channelName), msgSender, msgBody))
 			}
 		}
+		lastMessage = api
 	}
 }
-
+func reactToMessage(reaction string) {
+	chat := k.NewChat(channel)
+	chat.React(lastMessage.ID, reaction)
+}
 func handleInput(g *gocui.Gui) error {
 	inputString, _ := getInputString(g)
 	command := strings.Split(inputString, " ")
@@ -273,7 +283,11 @@ func handleInput(g *gocui.Gui) error {
 		stream = true
 		printToView(g, "Feed", "You have begun viewing the formatted stream.")
 	default:
-		go sendChat(inputString)
+		if inputString[:1] == "+" {
+			reactToMessage(strings.Replace(inputString, "+", "", 1))
+		} else {
+			go sendChat(inputString)
+		}
 	}
 	clearView(g, "Input")
 	return nil
