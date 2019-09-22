@@ -15,6 +15,7 @@ var channel keybase.Channel
 var channels [] keybase.Channel
 var stream bool = false
 var lastMessage keybase.ChatAPI
+
 func main() {
 	if !k.LoggedIn {
 		fmt.Println("You are not logged in.")
@@ -41,18 +42,14 @@ func main() {
 func populateChat(g *gocui.Gui) {
 	chat := k.NewChat(channel)
 	maxX, _ := g.Size()
-	if api, err := chat.Read(maxX/2); err != nil {
+	if api, err := chat.Read(maxX / 2); err != nil {
 		log.Printf("%+v", err)
 	} else {
 		var printMe []string
 		var actuallyPrintMe string
-		firstmsg := true
+		lastMessage.ID = api.Result.Messages[0].Msg.ID
 		for _, message := range api.Result.Messages {
 			if message.Msg.Content.Type == "text" {
-				if (firstmsg) {
-					firstmsg = false
-					lastMessage.ID = message.Msg.ID
-				}
 				msgSender := message.Msg.Sender.Username
 				msgBody := message.Msg.Content.Text.Body
 				newMessage := fmt.Sprintf("[%s]: %s", msgSender, msgBody)
@@ -77,7 +74,7 @@ func sendChat(message string) {
 func populateList(g *gocui.Gui) {
 	_, maxY := g.Size()
 	if testVar, err := k.ChatList(); err != nil {
-		log.Printf("%+v",err)
+		log.Printf("%+v", err)
 	} else {
 		clearView(g, "List")
 		var recentPMs = "---[PMs]---\n"
@@ -95,7 +92,7 @@ func populateList(g *gocui.Gui) {
 				}
 			} else {
 				recentPMsCount++
-				if recentPMsCount <= ((maxY- 2) / 3) {
+				if recentPMsCount <= ((maxY - 2) / 3) {
 					if s.Unread {
 						recentPMs += "*"
 					}
