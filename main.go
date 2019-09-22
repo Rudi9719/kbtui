@@ -13,9 +13,7 @@ import (
 var k = keybase.NewKeybase()
 var channel keybase.Channel
 var channels [] keybase.Channel
-//var lastListTs = time.Now()
 var stream bool = false
-//var updates = 0
 func main() {
 	if !k.LoggedIn {
 		fmt.Println("You are not logged in.")
@@ -71,10 +69,6 @@ func sendChat(message string) {
 }
 
 func populateList(g *gocui.Gui) {
-	//if time.Since(lastListTs) < (10 * time.Second) && updates != 1{
-	//	return
-	//}
-	//lastListTs = time.Now()
 	_, maxY := g.Size()
 	if testVar, err := k.ChatList(); err != nil {
 		log.Printf("%+v",err)
@@ -227,6 +221,8 @@ func handleMessage(api keybase.ChatAPI, g *gocui.Gui) {
 			}
 			if api.Msg.Channel.MembersType == channel.MembersType && cleanChannelName(api.Msg.Channel.Name) == channel.Name {
 				printToView(g, "Chat", fmt.Sprintf("[%s]: %s", msgSender, msgBody))
+				chat := k.NewChat(channel)
+				chat.Read(api.Msg.ID)
 			}
 		} else {
 			if api.Msg.Channel.MembersType == keybase.TEAM {
