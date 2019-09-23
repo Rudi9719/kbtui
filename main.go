@@ -293,6 +293,7 @@ func handleInput(g *gocui.Gui) error {
 		} else {
 			go sendChat(inputString)
 		}
+		go populateList(g)
 	}
 	clearView(g, "Input")
 	return nil
