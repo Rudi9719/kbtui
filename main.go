@@ -202,7 +202,16 @@ func getInputString(g *gocui.Gui) (string, error) {
 func initKeybindings(g *gocui.Gui) error {
 	if err := g.SetKeybinding("", gocui.KeyCtrlC, gocui.ModNone,
 		func(g *gocui.Gui, v *gocui.View) error {
-			return gocui.ErrQuit
+			input, err := getInputString(g)
+			if err != nil {
+				return err
+			}
+			if input != "" {
+				clearView(g, "Input")
+				return nil
+			} else {
+				return gocui.ErrQuit
+			}
 		}); err != nil {
 		return err
 	}
