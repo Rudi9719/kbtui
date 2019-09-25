@@ -235,7 +235,9 @@ func handleMessage(api keybase.ChatAPI, g *gocui.Gui) {
 			if api.Msg.Channel.MembersType == channel.MembersType && cleanChannelName(api.Msg.Channel.Name) == channel.Name {
 				printToView(g, "Chat", fmt.Sprintf("[%s]: %s", msgSender, msgBody))
 				chat := k.NewChat(channel)
+				lastMessage.ID = api.Msg.ID
 				chat.Read(api.Msg.ID)
+
 			}
 		} else {
 			if api.Msg.Channel.MembersType == keybase.TEAM {
@@ -245,7 +247,6 @@ func handleMessage(api keybase.ChatAPI, g *gocui.Gui) {
 				printToView(g, "Chat", fmt.Sprintf("PM @%s [%s]: %s", cleanChannelName(channelName), msgSender, msgBody))
 			}
 		}
-		lastMessage = api
 	} else {
 		//TODO: For edit/delete run this
 		if api.Msg.Channel.MembersType == channel.MembersType && cleanChannelName(api.Msg.Channel.Name) == channel.Name {
