@@ -75,6 +75,11 @@ func sendChat(message string) {
 	chat.Send(message)
 }
 
+func uploadFile(g *gocui.Gui, fileName string, fileTitle string) {
+	chat := k.NewChat(channel)
+	chat.Upload(fileTitle, fileName)
+}
+
 func populateList(g *gocui.Gui) {
 	_, maxY := g.Size()
 	if testVar, err := k.ChatList(); err != nil {
