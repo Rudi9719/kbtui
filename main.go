@@ -10,6 +10,11 @@ import (
 	"samhofi.us/x/keybase"
 )
 
+// Configurable section
+var downloadPath = "/tmp/"
+
+// End configurable section
+
 var k = keybase.NewKeybase()
 var channel keybase.Channel
 var channels [] keybase.Channel
@@ -78,6 +83,11 @@ func sendChat(message string) {
 func uploadFile(g *gocui.Gui, fileName string, fileTitle string) {
 	chat := k.NewChat(channel)
 	chat.Upload(fileTitle, fileName)
+	printToView(g, "Feed", fmt.Sprintf("You have uploaded %s to %s", fileName, channel.Name))
+}
+func downloadFile(g *gocui.Gui, messageID int, fileName string) {
+	chat := k.NewChat(channel)
+	chat.Download(messageID, fmt.Sprintf("%s/%s", downloadPath, fileName))
 }
 
 func populateList(g *gocui.Gui) {
