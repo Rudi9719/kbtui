@@ -258,6 +258,9 @@ func reactToMessage(reaction string) {
 }
 func handleInput(g *gocui.Gui) error {
 	inputString, _ := getInputString(g)
+	if inputString == "" {
+		return nil
+	}
 	command := strings.Split(inputString, " ")
 
 	switch strings.ToLower(command[0]) {
