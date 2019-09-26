@@ -12,7 +12,9 @@ import (
 
 // Configurable section
 var downloadPath = "/tmp/"
-
+var outputFormat = "┌───[ $USER @ $DEVICE ] [ $ID ] [ $DATE - $TIME ]\n└╼ $MSG"
+var dateFormat = "02JAN06"
+var timeFormat = "15:04"
 // End configurable section
 
 var k = keybase.NewKeybase()
@@ -59,9 +61,9 @@ func populateChat(g *gocui.Gui) {
 				if lastMessage.ID < 1 {
 					lastMessage.ID = message.Msg.ID
 				}
-				msgSender := message.Msg.Sender.Username
-				msgBody := message.Msg.Content.Text.Body
-				newMessage := fmt.Sprintf("[%s]: %s", msgSender, msgBody)
+				var apiCast keybase.ChatAPI
+				apiCast.Msg = &message.Msg
+				newMessage := formatOutput(apiCast)
 				printMe = append(printMe, newMessage)
 			}
 		}
@@ -79,7 +81,20 @@ func sendChat(message string) {
 	chat := k.NewChat(channel)
 	chat.Send(message)
 }
-
+func formatOutput(api keybase.ChatAPI) string {
+	ret := ""
+	if api.Msg.Content.Type == "text" {
+		ret = outputFormat
+		tm := time.Unix(int64(api.Msg.SentAt), 0)
+		ret = strings.Replace(ret, "$MSG", api.Msg.Content.Text.Body, 1)
+		ret = strings.Replace(ret, "$USER", api.Msg.Sender.Username, 1)
+		ret = strings.Replace(ret, "$DEVICE", api.Msg.Sender.DeviceName, 1)
+		ret = strings.Replace(ret, "$ID", fmt.Sprintf("%d", api.Msg.ID), 1)
+		ret = strings.Replace(ret, "$DATE", fmt.Sprintf("%s", tm.Format(dateFormat)), 1)
+		ret = strings.Replace(ret, "$TIME", fmt.Sprintf("%s", tm.Format(timeFormat)), 1)
+	}
+	return ret
+}
 func uploadFile(g *gocui.Gui, fileName string, fileTitle string) {
 	chat := k.NewChat(channel)
 	chat.Upload(fileTitle, fileName)
@@ -257,7 +272,7 @@ func handleMessage(api keybase.ChatAPI, g *gocui.Gui) {
 				}
 			}
 			if api.Msg.Channel.MembersType == channel.MembersType && cleanChannelName(api.Msg.Channel.Name) == channel.Name {
-				printToView(g, "Chat", fmt.Sprintf("[%s]: %s", msgSender, msgBody))
+				printToView(g, "Chat", formatOutput(api))
 				chat := k.NewChat(channel)
 				lastMessage.ID = api.Msg.ID
 				chat.Read(api.Msg.ID)
