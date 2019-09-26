@@ -97,12 +97,21 @@ func formatOutput(api keybase.ChatAPI) string {
 }
 func uploadFile(g *gocui.Gui, fileName string, fileTitle string) {
 	chat := k.NewChat(channel)
-	chat.Upload(fileTitle, fileName)
-	printToView(g, "Feed", fmt.Sprintf("You have uploaded %s to %s", fileName, channel.Name))
+	_, err := chat.Upload(fileTitle, fileName)
+	if err != nil {
+		printToView(g, "Feed", fmt.Sprintf("There was an error uploading %s to %s", fileName, channel.Name))
+	} else {
+		printToView(g, "Feed", fmt.Sprintf("Uploaded %s to %s", fileName, channel.Name))
+	}
 }
 func downloadFile(g *gocui.Gui, messageID int, fileName string) {
 	chat := k.NewChat(channel)
-	chat.Download(messageID, fmt.Sprintf("%s/%s", downloadPath, fileName))
+	_, err := chat.Download(messageID, fmt.Sprintf("%s/%s", downloadPath, fileName))
+	if err != nil {
+		printToView(g, "Feed", fmt.Sprintf("There was an error downloading %s from %s", fileName, channel.Name))
+	} else {
+		printToView(g, "Feed", fmt.Sprintf("Downloaded %s from %s", fileName, channel.Name))
+	}
 }
 
 func populateList(g *gocui.Gui) {
