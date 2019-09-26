@@ -195,6 +195,8 @@ func layout(g *gocui.Gui) error {
 		fmt.Fprintf(chatView, "Your chats will appear here.\nSupported commands are as follows:\n")
 		fmt.Fprintln(chatView, "/j $username - Open your chat with $username")
 		fmt.Fprintln(chatView, "/j $team $channel - Open $channel from $team")
+		fmt.Fprintln(chatView, "/u $path $title - Uploads file $path with title $title")
+		fmt.Fprintln(chatView, "/d $msgId $downloadName - Downloads file from $msgId to $DownloadPath/$downloadName")
 		fmt.Fprintln(chatView, "/s  - Experimental: View all incoming messages from everywhere.")
 		fmt.Fprintln(chatView, "          Please note: small teams only have #general")
 		fmt.Fprintln(chatView, "/q - Exit")
@@ -344,7 +346,7 @@ func handleInput(g *gocui.Gui) error {
 			uploadFile(g, filePath, fileName)
 		} else if len(command) == 2 {
 			filePath := command[1]
-			fileName := "kbtui_upload"
+			fileName := ""
 			uploadFile(g, filePath, fileName)
 		} else {
 			printToView(g, "Feed", "To upload a file, supply full path and optional title (no spaces)")
@@ -363,8 +365,7 @@ func handleInput(g *gocui.Gui) error {
 			if err != nil {
 				printToView(g, "Feed", "Invalid message ID")
 			} else {
-				fileName := command[1]
-				downloadFile(g, messageId, fileName)
+				downloadFile(g, messageId, command[1])
 			}
 		}
 	case "/s":
