@@ -51,9 +51,24 @@ func populateChat(g *gocui.Gui) {
 	lastMessage.ID = 0
 	chat := k.NewChat(channel)
 	maxX, _ := g.Size()
-	if api, err := chat.Read(maxX / 2); err != nil {
-		printToView(g, "Feed", fmt.Sprintf("%+v", err))
-	} else {
+	api, err := chat.Read(maxX / 2)
+	if err != nil {
+		for _, testChan := range channels {
+			if channel.Name == testChan.Name {
+				channel = testChan
+				channel.TopicName = "general"
+			}
+		}
+		chat = k.NewChat(channel)
+		_, err2 := chat.Read(2)
+		if err2 != nil {
+			printToView(g, "Feed", fmt.Sprintf("%+v", err))
+			return
+		} else {
+			go populateChat(g)
+			return
+		}
+	}
 		var printMe []string
 		var actuallyPrintMe string
 		lastMessage.ID = api.Result.Messages[0].Msg.ID
@@ -75,7 +90,7 @@ func populateChat(g *gocui.Gui) {
 			}
 		}
 		printToView(g, "Chat", actuallyPrintMe)
-	}
+
 }
 
 func sendChat(message string) {
@@ -120,12 +135,14 @@ func populateList(g *gocui.Gui) {
 	if testVar, err := k.ChatList(); err != nil {
 		log.Printf("%+v", err)
 	} else {
+
 		clearView(g, "List")
 		var recentPMs = "---[PMs]---\n"
 		var recentPMsCount = 0
 		var recentChannels = "---[Teams]---\n"
 		var recentChannelsCount = 0
 		for _, s := range testVar.Result.Conversations {
+			channels = append(channels, s.Channel)
 			if s.Channel.MembersType == keybase.TEAM {
 				recentChannelsCount++
 				if recentChannelsCount <= ((maxY - 2) / 3) {
