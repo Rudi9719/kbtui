@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"strconv"
 	"strings"
 	"time"
 
@@ -95,13 +96,13 @@ func formatOutput(api keybase.ChatAPI) string {
 	}
 	return ret
 }
-func uploadFile(g *gocui.Gui, fileName string, fileTitle string) {
+func uploadFile(g *gocui.Gui, filePath string, fileName string) {
 	chat := k.NewChat(channel)
-	_, err := chat.Upload(fileTitle, fileName)
+	_, err := chat.Upload(fileName, filePath)
 	if err != nil {
-		printToView(g, "Feed", fmt.Sprintf("There was an error uploading %s to %s", fileName, channel.Name))
+		printToView(g, "Feed", fmt.Sprintf("There was an error uploading %s to %s", filePath, channel.Name))
 	} else {
-		printToView(g, "Feed", fmt.Sprintf("Uploaded %s to %s\n%+v", fileName, channel.Name, err))
+		printToView(g, "Feed", fmt.Sprintf("Uploaded %s to %s\n%+v", filePath, channel.Name, err))
 	}
 }
 func downloadFile(g *gocui.Gui, messageID int, fileName string) {
@@ -335,6 +336,36 @@ func handleInput(g *gocui.Gui) error {
 		} else {
 			printToView(g, "Feed", "To join a team use /j <team> <channel>")
 			printToView(g, "Feed", "To join a PM use /j <user>")
+		}
+	case "/u":
+		if len(command) == 3 {
+			filePath := command[1]
+			fileName := command[2]
+			uploadFile(g, filePath, fileName)
+		} else if len(command) == 2 {
+			filePath := command[1]
+			fileName := "kbtui_upload"
+			uploadFile(g, filePath, fileName)
+		} else {
+			printToView(g, "Feed", "To upload a file, supply full path and optional title (no spaces)")
+		}
+	case "/d":
+		if len(command) == 3 {
+			messageId, err := strconv.Atoi(command[1])
+			if err != nil {
+				printToView(g, "Feed", "Invalid message ID")
+			} else {
+				fileName := command[2]
+				downloadFile(g, messageId, fileName)
+			}
+		} else if len(command) == 2 {
+			messageId, err := strconv.Atoi(command[1])
+			if err != nil {
+				printToView(g, "Feed", "Invalid message ID")
+			} else {
+				fileName := command[1]
+				downloadFile(g, messageId, fileName)
+			}
 		}
 	case "/s":
 		clearView(g, "Chat")
