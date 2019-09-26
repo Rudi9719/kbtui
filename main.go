@@ -101,7 +101,7 @@ func uploadFile(g *gocui.Gui, fileName string, fileTitle string) {
 	if err != nil {
 		printToView(g, "Feed", fmt.Sprintf("There was an error uploading %s to %s", fileName, channel.Name))
 	} else {
-		printToView(g, "Feed", fmt.Sprintf("Uploaded %s to %s", fileName, channel.Name))
+		printToView(g, "Feed", fmt.Sprintf("Uploaded %s to %s\n%+v", fileName, channel.Name, err))
 	}
 }
 func downloadFile(g *gocui.Gui, messageID int, fileName string) {
@@ -110,7 +110,7 @@ func downloadFile(g *gocui.Gui, messageID int, fileName string) {
 	if err != nil {
 		printToView(g, "Feed", fmt.Sprintf("There was an error downloading %s from %s", fileName, channel.Name))
 	} else {
-		printToView(g, "Feed", fmt.Sprintf("Downloaded %s from %s", fileName, channel.Name))
+		printToView(g, "Feed", fmt.Sprintf("Downloaded %s from %s\n%+v", fileName, channel.Name, err))
 	}
 }
 
