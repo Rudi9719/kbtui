@@ -52,7 +52,7 @@ func populateChat(g *gocui.Gui) {
 	chat := k.NewChat(channel)
 	maxX, _ := g.Size()
 	if api, err := chat.Read(maxX / 2); err != nil {
-		log.Printf("%+v", err)
+		printToView(g, "Feed", fmt.Sprintf("%+v", err))
 	} else {
 		var printMe []string
 		var actuallyPrintMe string
@@ -308,6 +308,7 @@ func handleMessage(api keybase.ChatAPI, g *gocui.Gui) {
 func reactToMessage(reaction string) {
 	chat := k.NewChat(channel)
 	chat.React(lastMessage.ID, reaction)
+
 }
 func handleInput(g *gocui.Gui) error {
 	inputString, _ := getInputString(g)
@@ -325,14 +326,14 @@ func handleInput(g *gocui.Gui) error {
 			channel.MembersType = keybase.TEAM
 			channel.Name = command[1]
 			channel.TopicName = command[2]
-			printToView(g, "Feed", fmt.Sprintf("You have joined: @%s#%s", channel.Name, channel.TopicName))
+			printToView(g, "Feed", fmt.Sprintf("You are joining: @%s#%s", channel.Name, channel.TopicName))
 			clearView(g, "Chat")
 			go populateChat(g)
 		} else if len(command) == 2 {
 			channel.MembersType = keybase.USER
 			channel.Name = command[1]
 			channel.TopicName = ""
-			printToView(g, "Feed", fmt.Sprintf("You have joined: @%s", channel.Name))
+			printToView(g, "Feed", fmt.Sprintf("You are joining: @%s", channel.Name))
 			clearView(g, "Chat")
 			go populateChat(g)
 		} else {
