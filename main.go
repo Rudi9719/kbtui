@@ -297,12 +297,19 @@ func handleMessage(api keybase.ChatAPI, g *gocui.Gui) {
 					topicName := api.Msg.Channel.TopicName
 					for _, m := range api.Msg.Content.Text.UserMentions {
 						if m.Text == k.Username {
-							printToView(g, "Feed", fmt.Sprintf("[ %s#%s ] %s: %s", channelName, topicName, msgSender, msgBody))
+							// We are in a team
+							if topicName != channel.TopicName {
+								printToView(g, "Feed", fmt.Sprintf("[ %s#%s ] %s: %s", channelName, topicName, msgSender, msgBody))
+							}
+							
 							break
 						}
 					}
 				} else {
-					printToView(g, "Feed", fmt.Sprintf("PM from @%s: %s", cleanChannelName(channelName), msgBody))
+					if msgSender != channel.Name {
+						printToView(g, "Feed", fmt.Sprintf("PM from @%s: %s", cleanChannelName(channelName), msgBody))
+					}
+					
 				}
 			}
 			if api.Msg.Channel.MembersType == channel.MembersType && cleanChannelName(api.Msg.Channel.Name) == channel.Name {
