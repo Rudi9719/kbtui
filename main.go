@@ -12,12 +12,16 @@ import (
 )
 
 // Configurable section
+
+
 var downloadPath = "/tmp/"
 var outputFormat = "┌──[$USER@$DEVICE] [$ID] [$DATE - $TIME]\n└╼ $MSG"
 // 02 = Day, Jan = Month, 06 = Year
 var dateFormat = "02Jan06"
 // 15 = hours, 04 = minutes, 05 = seconds
 var timeFormat = "15:04"
+
+
 // End configurable section
 
 var k = keybase.NewKeybase()
@@ -217,7 +221,6 @@ func layout(g *gocui.Gui) error {
 		fmt.Fprintln(chatView, "/u $path $title - Uploads file $path with title $title")
 		fmt.Fprintln(chatView, "/d $msgId $downloadName - Downloads file from $msgId to $DownloadPath/$downloadName")
 		fmt.Fprintln(chatView, "/s  - Experimental: View all incoming messages from everywhere.")
-		fmt.Fprintln(chatView, "          Please note: small teams only have #general")
 		fmt.Fprintln(chatView, "/q - Exit")
 	}
 	if inputView, err3 := g.SetView("Input", maxX/2-maxX/3, maxY-4, maxX-1, maxY-1); err3 != nil {
