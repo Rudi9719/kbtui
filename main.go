@@ -220,6 +220,8 @@ func layout(g *gocui.Gui) error {
 		fmt.Fprintln(chatView, "/j $team $channel - Open $channel from $team")
 		fmt.Fprintln(chatView, "/u $path $title - Uploads file $path with title $title")
 		fmt.Fprintln(chatView, "/d $msgId $downloadName - Downloads file from $msgId to $DownloadPath/$downloadName")
+		fmt.Fprintln(chatView, "/r $msgId $reaction - Reacts to $msgId with $reaction reaction can be emoji :+1:")
+		fmt.Fprintln(chatView, "      Can also be used for STRING reactions")
 		fmt.Fprintln(chatView, "/s  - Experimental: View all incoming messages from everywhere.")
 		fmt.Fprintln(chatView, "/q - Exit")
 	}
@@ -344,6 +346,11 @@ func reactToMessage(reaction string) {
 	chat.React(lastMessage.ID, reaction)
 
 }
+func reactToMessageId(messageId string, reaction string) {
+	chat := k.NewChat(channel)
+	ID, _ := strconv.Atoi(messageId)
+	chat.React(ID, reaction)
+}
 func handleInput(g *gocui.Gui) error {
 	inputString, _ := getInputString(g)
 	if inputString == "" {
@@ -407,6 +414,12 @@ func handleInput(g *gocui.Gui) error {
 		clearView(g, "Chat")
 		stream = true
 		printToView(g, "Feed", "You have begun viewing the formatted stream.")
+	case "/r":
+		if len(command) == 3 {
+			reactToMessageId(command[1], command[2])
+		} else {
+			printToView(g,"Feed","/r $messageId $desiredReaction")
+		}
 	default:
 		if inputString[:1] == "+" {
 			reactToMessage(strings.Replace(inputString, "+", "", 1))
