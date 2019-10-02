@@ -99,9 +99,12 @@ func populateChat(g *gocui.Gui) {
 
 }
 
-func sendChat(message string) {
+func sendChat(message string, g *gocui.Gui) {
 	chat := k.NewChat(channel)
-	chat.Send(message)
+	_, err := chat.Send(message)
+	if err != nil {
+		printToView(g,"Feed",fmt.Sprintf("There was an error %+v", err))
+	}
 }
 func formatOutput(api keybase.ChatAPI) string {
 	ret := ""
@@ -123,7 +126,7 @@ func uploadFile(g *gocui.Gui, filePath string, fileName string) {
 	if err != nil {
 		printToView(g, "Feed", fmt.Sprintf("There was an error uploading %s to %s", filePath, channel.Name))
 	} else {
-		printToView(g, "Feed", fmt.Sprintf("Uploaded %s to %s\n%+v", filePath, channel.Name, err))
+		printToView(g, "Feed", fmt.Sprintf("Uploaded %s to %s", filePath, channel.Name))
 	}
 }
 func downloadFile(g *gocui.Gui, messageID int, fileName string) {
