@@ -3,6 +3,7 @@ Keybase TUI written in Go using [@dxb](https://keybase.io/dxb)'s
 Keybase [bot framework](https://godoc.org/samhofi.us/x/keybase).
 It started as a joke, then a bash script, and now here it is!
 
+For support or suggestions check out the [kbtui team](https://keybase.io/team/kbtui)
 
 ## Features
 * Dark Mode (or rather mode based on Terminal Theme)
