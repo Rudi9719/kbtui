@@ -135,7 +135,7 @@ func downloadFile(g *gocui.Gui, messageID int, fileName string) {
 	if err != nil {
 		printToView(g, "Feed", fmt.Sprintf("There was an error downloading %s from %s", fileName, channel.Name))
 	} else {
-		printToView(g, "Feed", fmt.Sprintf("Downloaded %s from %s\n%+v", fileName, channel.Name, err))
+		printToView(g, "Feed", fmt.Sprintf("Downloaded %s from %s", fileName, channel.Name))
 	}
 }
 
@@ -427,7 +427,7 @@ func handleInput(g *gocui.Gui) error {
 		if inputString[:1] == "+" {
 			reactToMessage(strings.Replace(inputString, "+", "", 1))
 		} else {
-			go sendChat(inputString)
+			go sendChat(inputString, g)
 		}
 		go populateList(g)
 	}
