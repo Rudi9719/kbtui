@@ -303,10 +303,15 @@ func handleMessage(api keybase.ChatAPI, g *gocui.Gui) {
 				}
 			}
 			if api.Msg.Channel.MembersType == channel.MembersType && cleanChannelName(api.Msg.Channel.Name) == channel.Name {
+				if  channel.MembersType == keybase.TEAM && channel.TopicName != api.Msg.Channel.TopicName {
+					// Do nothing, wrong channel
+				} else {
+
 				printToView(g, "Chat", formatOutput(api))
 				chat := k.NewChat(channel)
 				lastMessage.ID = api.Msg.ID
 				chat.Read(api.Msg.ID)
+				}
 
 			}
 		} else {
