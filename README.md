@@ -13,14 +13,14 @@ For support or suggestions check out the [kbtui team](https://keybase.io/team/kb
 * List view to show activity
 * Chat view to interact with the current channel
 * Marks unread messages in the List view
+* Reactions to messages
+* Auto #general teams when not given a channel
+* Pretty format headers in List view from window size
 
 ## Todo
-* Reactions to messages
 * Message editing
-* Pretty format headers in List view from window size
 * Twitter-style feed reading public messages
 * Track multiple conversations at once
-* Auto #general teams when not given a channel
 
 ### Building and Running
 ```
