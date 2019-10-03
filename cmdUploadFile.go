@@ -1,4 +1,4 @@
-// +build !rm_basic_commands allcommands joincmd
+// +build !rm_basic_commands allcommands uploadcmd
 
 package main
 
