@@ -12,21 +12,20 @@ import (
 )
 
 // Configurable section
-
-
 var downloadPath = "/tmp/"
 var outputFormat = "┌──[$USER@$DEVICE] [$ID] [$DATE - $TIME]\n└╼ $MSG"
+
 // 02 = Day, Jan = Month, 06 = Year
 var dateFormat = "02Jan06"
+
 // 15 = hours, 04 = minutes, 05 = seconds
 var timeFormat = "15:04"
-
 
 // End configurable section
 
 var k = keybase.NewKeybase()
 var channel keybase.Channel
-var channels [] keybase.Channel
+var channels []keybase.Channel
 var stream = false
 var lastMessage keybase.ChatAPI
 
@@ -75,27 +74,27 @@ func populateChat(g *gocui.Gui) {
 			return
 		}
 	}
-		var printMe []string
-		var actuallyPrintMe string
-		lastMessage.ID = api.Result.Messages[0].Msg.ID
-		for _, message := range api.Result.Messages {
-			if message.Msg.Content.Type == "text" {
-				if lastMessage.ID < 1 {
-					lastMessage.ID = message.Msg.ID
-				}
-				var apiCast keybase.ChatAPI
-				apiCast.Msg = &message.Msg
-				newMessage := formatOutput(apiCast)
-				printMe = append(printMe, newMessage)
+	var printMe []string
+	var actuallyPrintMe string
+	lastMessage.ID = api.Result.Messages[0].Msg.ID
+	for _, message := range api.Result.Messages {
+		if message.Msg.Content.Type == "text" {
+			if lastMessage.ID < 1 {
+				lastMessage.ID = message.Msg.ID
 			}
+			var apiCast keybase.ChatAPI
+			apiCast.Msg = &message.Msg
+			newMessage := formatOutput(apiCast)
+			printMe = append(printMe, newMessage)
 		}
-		for i := len(printMe) - 1; i >= 0; i-- {
-			actuallyPrintMe += printMe[i]
-			if i > 0 {
-				actuallyPrintMe += "\n"
-			}
+	}
+	for i := len(printMe) - 1; i >= 0; i-- {
+		actuallyPrintMe += printMe[i]
+		if i > 0 {
+			actuallyPrintMe += "\n"
 		}
-		printToView(g, "Chat", actuallyPrintMe)
+	}
+	printToView(g, "Chat", actuallyPrintMe)
 
 }
 
@@ -103,7 +102,7 @@ func sendChat(message string, g *gocui.Gui) {
 	chat := k.NewChat(channel)
 	_, err := chat.Send(message)
 	if err != nil {
-		printToView(g,"Feed",fmt.Sprintf("There was an error %+v", err))
+		printToView(g, "Feed", fmt.Sprintf("There was an error %+v", err))
 	}
 }
 func formatOutput(api keybase.ChatAPI) string {
@@ -306,7 +305,7 @@ func handleMessage(api keybase.ChatAPI, g *gocui.Gui) {
 							if topicName != channel.TopicName {
 								printToView(g, "Feed", fmt.Sprintf("[ %s#%s ] %s: %s", channelName, topicName, msgSender, msgBody))
 							}
-							
+
 							break
 						}
 					}
@@ -314,18 +313,18 @@ func handleMessage(api keybase.ChatAPI, g *gocui.Gui) {
 					if msgSender != channel.Name {
 						printToView(g, "Feed", fmt.Sprintf("PM from @%s: %s", cleanChannelName(channelName), msgBody))
 					}
-					
+
 				}
 			}
 			if api.Msg.Channel.MembersType == channel.MembersType && cleanChannelName(api.Msg.Channel.Name) == channel.Name {
-				if  channel.MembersType == keybase.TEAM && channel.TopicName != api.Msg.Channel.TopicName {
+				if channel.MembersType == keybase.TEAM && channel.TopicName != api.Msg.Channel.TopicName {
 					// Do nothing, wrong channel
 				} else {
 
-				printToView(g, "Chat", formatOutput(api))
-				chat := k.NewChat(channel)
-				lastMessage.ID = api.Msg.ID
-				chat.Read(api.Msg.ID)
+					printToView(g, "Chat", formatOutput(api))
+					chat := k.NewChat(channel)
+					lastMessage.ID = api.Msg.ID
+					chat.Read(api.Msg.ID)
 				}
 
 			}
@@ -421,7 +420,7 @@ func handleInput(g *gocui.Gui) error {
 		if len(command) == 3 {
 			reactToMessageId(command[1], command[2])
 		} else {
-			printToView(g,"Feed","/r $messageId $desiredReaction")
+			printToView(g, "Feed", "/r $messageId $desiredReaction")
 		}
 	default:
 		if inputString[:1] == "+" {
