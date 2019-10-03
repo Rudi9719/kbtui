@@ -110,8 +110,6 @@ func formatOutput(api keybase.ChatAPI) string {
 	return ret
 }
 
-
-
 func populateList() {
 	_, maxY := g.Size()
 	if testVar, err := k.ChatList(); err != nil {

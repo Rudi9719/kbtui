@@ -10,7 +10,7 @@ import (
 func init() {
 	command := Command{
 		Cmd:         []string{"help", "h"},
-		Description: "Show information about avaailable commands",
+		Description: "/h Show information about available commands",
 		Help:        "",
 		Exec:        cmdHelp,
 	}

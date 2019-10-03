@@ -10,7 +10,7 @@ import (
 func init() {
 	command := Command{
 		Cmd:         []string{"download", "d"},
-		Description: "Download a file",
+		Description: "/d $messageId $fileName - Download a file to user's downloadpath",
 		Help:        "",
 		Exec:        cmdDownloadFile,
 	}
@@ -20,7 +20,12 @@ func init() {
 
 func cmdDownloadFile(cmd []string) {
 	messageID, _ := strconv.Atoi(cmd[1])
-	fileName := cmd[2]
+	var fileName string
+	if len(cmd) == 3 {
+		fileName = cmd[2]
+	} else {
+		fileName = ""
+	}
 
 	chat := k.NewChat(channel)
 	_, err := chat.Download(messageID, fmt.Sprintf("%s/%s", downloadPath, fileName))

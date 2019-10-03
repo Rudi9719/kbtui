@@ -2,11 +2,10 @@
 
 package main
 
-
 func init() {
 	command := Command{
-		Cmd:         []string{"stream", "s" },
-		Description: "Stream all incoming messages",
+		Cmd:         []string{"stream", "s"},
+		Description: "/s - Stream all incoming messages",
 		Help:        "",
 		Exec:        cmdStream,
 	}
