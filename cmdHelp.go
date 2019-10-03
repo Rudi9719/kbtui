@@ -28,5 +28,5 @@ func cmdHelp(g *gocui.Gui, cmd []string) {
 			helpText = fmt.Sprintf("%s%s%s\t\t%s\n", helpText, cmdPrefix, c, commands[c].Description)
 		}
 	}
-	printToView(g, "Chat", helpText)
+	printToView("Chat", helpText)
 }

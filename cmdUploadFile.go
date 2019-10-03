@@ -30,8 +30,8 @@ func cmdUploadFile(g *gocui.Gui, cmd []string) {
 	chat := k.NewChat(channel)
 	_, err := chat.Upload(fileName, filePath)
 	if err != nil {
-		printToView(g, "Feed", fmt.Sprintf("There was an error uploading %s to %s", filePath, channel.Name))
+		printToView("Feed", fmt.Sprintf("There was an error uploading %s to %s", filePath, channel.Name))
 	} else {
-		printToView(g, "Feed", fmt.Sprintf("Uploaded %s to %s", filePath, channel.Name))
+		printToView("Feed", fmt.Sprintf("Uploaded %s to %s", filePath, channel.Name))
 	}
 }

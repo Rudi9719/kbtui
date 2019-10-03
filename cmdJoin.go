@@ -26,18 +26,18 @@ func cmdJoin(g *gocui.Gui, cmd []string) {
 		channel.MembersType = keybase.TEAM
 		channel.Name = cmd[1]
 		channel.TopicName = cmd[2]
-		printToView(g, "Feed", fmt.Sprintf("You are joining: @%s#%s", channel.Name, channel.TopicName))
-		clearView(g, "Chat")
-		go populateChat(g)
+		printToView("Feed", fmt.Sprintf("You are joining: @%s#%s", channel.Name, channel.TopicName))
+		clearView("Chat")
+		go populateChat()
 	} else if len(cmd) == 2 {
 		channel.MembersType = keybase.USER
 		channel.Name = cmd[1]
 		channel.TopicName = ""
-		printToView(g, "Feed", fmt.Sprintf("You are joining: @%s", channel.Name))
-		clearView(g, "Chat")
-		go populateChat(g)
+		printToView("Feed", fmt.Sprintf("You are joining: @%s", channel.Name))
+		clearView("Chat")
+		go populateChat()
 	} else {
-		printToView(g, "Feed", fmt.Sprintf("To join a team use %sjoin <team> <channel>", cmdPrefix))
-		printToView(g, "Feed", fmt.Sprintf("To join a PM use %sjoin <user>", cmdPrefix))
+		printToView("Feed", fmt.Sprintf("To join a team use %sjoin <team> <channel>", cmdPrefix))
+		printToView("Feed", fmt.Sprintf("To join a PM use %sjoin <user>", cmdPrefix))
 	}
 }

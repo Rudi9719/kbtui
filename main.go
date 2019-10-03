@@ -33,6 +33,7 @@ var channel keybase.Channel
 var channels []keybase.Channel
 var stream = false
 var lastMessage keybase.ChatAPI
+var g *gocui.Gui
 
 func main() {
 	if !k.LoggedIn {
@@ -46,17 +47,17 @@ func main() {
 	}
 	defer kbtui.Close()
 	kbtui.SetManagerFunc(layout)
-
-	go populateList(kbtui)
-	go updateChatWindow(kbtui)
-	if err := initKeybindings(kbtui); err != nil {
+	g = kbtui
+	go populateList()
+	go updateChatWindow()
+	if err := initKeybindings(); err != nil {
 		log.Printf("%+v", err)
 	}
 	if err := kbtui.MainLoop(); err != nil && err != gocui.ErrQuit {
 		log.Printf("%+v", err)
 	}
 }
-func populateChat(g *gocui.Gui) {
+func populateChat() {
 	lastMessage.ID = 0
 	chat := k.NewChat(channel)
 	maxX, _ := g.Size()
@@ -71,10 +72,10 @@ func populateChat(g *gocui.Gui) {
 		chat = k.NewChat(channel)
 		_, err2 := chat.Read(2)
 		if err2 != nil {
-			printToView(g, "Feed", fmt.Sprintf("%+v", err))
+			printToView("Feed", fmt.Sprintf("%+v", err))
 			return
 		} else {
-			go populateChat(g)
+			go populateChat()
 			return
 		}
 	}
@@ -98,15 +99,15 @@ func populateChat(g *gocui.Gui) {
 			actuallyPrintMe += "\n"
 		}
 	}
-	printToView(g, "Chat", actuallyPrintMe)
+	printToView("Chat", actuallyPrintMe)
 
 }
 
-func sendChat(message string, g *gocui.Gui) {
+func sendChat(message string) {
 	chat := k.NewChat(channel)
 	_, err := chat.Send(message)
 	if err != nil {
-		printToView(g, "Feed", fmt.Sprintf("There was an error %+v", err))
+		printToView("Feed", fmt.Sprintf("There was an error %+v", err))
 	}
 }
 func formatOutput(api keybase.ChatAPI) string {
@@ -124,23 +125,23 @@ func formatOutput(api keybase.ChatAPI) string {
 	return ret
 }
 
-func downloadFile(g *gocui.Gui, messageID int, fileName string) {
+func downloadFile(messageID int, fileName string) {
 	chat := k.NewChat(channel)
 	_, err := chat.Download(messageID, fmt.Sprintf("%s/%s", downloadPath, fileName))
 	if err != nil {
-		printToView(g, "Feed", fmt.Sprintf("There was an error downloading %s from %s", fileName, channel.Name))
+		printToView("Feed", fmt.Sprintf("There was an error downloading %s from %s", fileName, channel.Name))
 	} else {
-		printToView(g, "Feed", fmt.Sprintf("Downloaded %s from %s", fileName, channel.Name))
+		printToView("Feed", fmt.Sprintf("Downloaded %s from %s", fileName, channel.Name))
 	}
 }
 
-func populateList(g *gocui.Gui) {
+func populateList() {
 	_, maxY := g.Size()
 	if testVar, err := k.ChatList(); err != nil {
 		log.Printf("%+v", err)
 	} else {
 
-		clearView(g, "List")
+		clearView("List")
 		var recentPMs = "---[PMs]---\n"
 		var recentPMsCount = 0
 		var recentChannels = "---[Teams]---\n"
@@ -166,13 +167,13 @@ func populateList(g *gocui.Gui) {
 			}
 		}
 		time.Sleep(1 * time.Millisecond)
-		printToView(g, "List", fmt.Sprintf("%s%s", recentPMs, recentChannels))
+		printToView("List", fmt.Sprintf("%s%s", recentPMs, recentChannels))
 	}
 }
 
-func clearView(kbtui *gocui.Gui, viewName string) {
-	kbtui.Update(func(g *gocui.Gui) error {
-		inputView, err := kbtui.View(viewName)
+func clearView(viewName string) {
+	g.Update(func(g *gocui.Gui) error {
+		inputView, err := g.View(viewName)
 		if err != nil {
 			return err
 		} else {
@@ -185,9 +186,9 @@ func clearView(kbtui *gocui.Gui, viewName string) {
 
 }
 
-func printToView(kbtui *gocui.Gui, viewName string, message string) {
-	kbtui.Update(func(g *gocui.Gui) error {
-		updatingView, err := kbtui.View(viewName)
+func printToView(viewName string, message string) {
+	g.Update(func(g *gocui.Gui) error {
+		updatingView, err := g.View(viewName)
 		if err != nil {
 			return err
 		} else {
@@ -214,7 +215,7 @@ func layout(g *gocui.Gui) error {
 		chatView.Autoscroll = true
 		chatView.Wrap = true
 		fmt.Fprintf(chatView, "Welcome %s!\n\nYour chats will appear here.\nSupported commands are as follows:\n\n", k.Username)
-		RunCommand(g, "help")
+		RunCommand("help")
 	}
 	if inputView, err3 := g.SetView("Input", maxX/2-maxX/3, maxY-4, maxX-1, maxY-1); err3 != nil {
 		if err3 != gocui.ErrUnknownView {
@@ -236,20 +237,20 @@ func layout(g *gocui.Gui) error {
 	return nil
 }
 
-func getInputString(g *gocui.Gui) (string, error) {
+func getInputString() (string, error) {
 	inputView, _ := g.View("Input")
 	return inputView.Line(0)
 }
 
-func initKeybindings(g *gocui.Gui) error {
+func initKeybindings() error {
 	if err := g.SetKeybinding("", gocui.KeyCtrlC, gocui.ModNone,
 		func(g *gocui.Gui, v *gocui.View) error {
-			input, err := getInputString(g)
+			input, err := getInputString()
 			if err != nil {
 				return err
 			}
 			if input != "" {
-				clearView(g, "Input")
+				clearView("Input")
 				return nil
 			} else {
 				return gocui.ErrQuit
@@ -259,16 +260,16 @@ func initKeybindings(g *gocui.Gui) error {
 	}
 	if err := g.SetKeybinding("Input", gocui.KeyEnter, gocui.ModNone,
 		func(g *gocui.Gui, v *gocui.View) error {
-			return handleInput(g)
+			return handleInput()
 		}); err != nil {
 		return err
 	}
 	return nil
 }
 
-func updateChatWindow(g *gocui.Gui) {
+func updateChatWindow() {
 	k.Run(func(api keybase.ChatAPI) {
-		handleMessage(api, g)
+		handleMessage(api)
 	})
 
 }
@@ -278,9 +279,9 @@ func cleanChannelName(c string) string {
 	return strings.Replace(newChannelName, fmt.Sprintf(",%s", k.Username), "", 1)
 }
 
-func handleMessage(api keybase.ChatAPI, g *gocui.Gui) {
+func handleMessage(api keybase.ChatAPI) {
 	if api.Msg.Content.Type == "text" {
-		go populateList(g)
+		go populateList()
 		msgBody := api.Msg.Content.Text.Body
 		msgSender := api.Msg.Sender.Username
 		channelName := api.Msg.Channel.Name
@@ -292,7 +293,7 @@ func handleMessage(api keybase.ChatAPI, g *gocui.Gui) {
 						if m.Text == k.Username {
 							// We are in a team
 							if topicName != channel.TopicName {
-								printToView(g, "Feed", fmt.Sprintf("[ %s#%s ] %s: %s", channelName, topicName, msgSender, msgBody))
+								printToView("Feed", fmt.Sprintf("[ %s#%s ] %s: %s", channelName, topicName, msgSender, msgBody))
 							}
 
 							break
@@ -300,7 +301,7 @@ func handleMessage(api keybase.ChatAPI, g *gocui.Gui) {
 					}
 				} else {
 					if msgSender != channel.Name {
-						printToView(g, "Feed", fmt.Sprintf("PM from @%s: %s", cleanChannelName(channelName), msgBody))
+						printToView("Feed", fmt.Sprintf("PM from @%s: %s", cleanChannelName(channelName), msgBody))
 					}
 
 				}
@@ -310,7 +311,7 @@ func handleMessage(api keybase.ChatAPI, g *gocui.Gui) {
 					// Do nothing, wrong channel
 				} else {
 
-					printToView(g, "Chat", formatOutput(api))
+					printToView("Chat", formatOutput(api))
 					chat := k.NewChat(channel)
 					lastMessage.ID = api.Msg.ID
 					chat.Read(api.Msg.ID)
@@ -320,15 +321,15 @@ func handleMessage(api keybase.ChatAPI, g *gocui.Gui) {
 		} else {
 			if api.Msg.Channel.MembersType == keybase.TEAM {
 				topicName := api.Msg.Channel.TopicName
-				printToView(g, "Chat", fmt.Sprintf("@%s#%s [%s]: %s", channelName, topicName, msgSender, msgBody))
+				printToView("Chat", fmt.Sprintf("@%s#%s [%s]: %s", channelName, topicName, msgSender, msgBody))
 			} else {
-				printToView(g, "Chat", fmt.Sprintf("PM @%s [%s]: %s", cleanChannelName(channelName), msgSender, msgBody))
+				printToView("Chat", fmt.Sprintf("PM @%s [%s]: %s", cleanChannelName(channelName), msgSender, msgBody))
 			}
 		}
 	} else {
 		//TODO: For edit/delete run this
 		if api.Msg.Channel.MembersType == channel.MembersType && cleanChannelName(api.Msg.Channel.Name) == channel.Name {
-			go populateChat(g)
+			go populateChat()
 		}
 	}
 }
@@ -342,9 +343,9 @@ func reactToMessageId(messageId string, reaction string) {
 	ID, _ := strconv.Atoi(messageId)
 	chat.React(ID, reaction)
 }
-func handleInput(g *gocui.Gui) error {
-	clearView(g, "Input")
-	inputString, _ := getInputString(g)
+func handleInput() error {
+	clearView("Input")
+	inputString, _ := getInputString()
 	if inputString == "" {
 		return nil
 	}
@@ -356,16 +357,16 @@ func handleInput(g *gocui.Gui) error {
 		} else if cmd[0] == "q" || cmd[0] == "quit" {
 			return gocui.ErrQuit
 		} else {
-			printToView(g, "Feed", fmt.Sprintf("Command '%s' not recognized", cmd[0]))
+			printToView("Feed", fmt.Sprintf("Command '%s' not recognized", cmd[0]))
 			return nil
 		}
 	}
 	if inputString[:1] == "+" {
 		reactToMessage(strings.Replace(inputString, "+", "", 1))
 	} else {
-		go sendChat(inputString, g)
+		go sendChat(inputString)
 	}
-	go populateList(g)
+	go populateList()
 	return nil
 }
 
@@ -393,6 +394,6 @@ func RegisterCommand(c Command) error {
 }
 
 // RunCommand calls a command as if it was run by the user
-func RunCommand(g *gocui.Gui, c ...string) {
+func RunCommand(c ...string) {
 	commands[c[0]].Exec(g, c)
 }
