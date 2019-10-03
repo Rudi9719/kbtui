@@ -11,11 +11,6 @@ import (
 	"samhofi.us/x/keybase"
 )
 
-const cmdPrefix = "/"
-
-var commands = make(map[string]Command)
-var baseCommands = make([]string, 0)
-
 // Configurable section
 var downloadPath = "/tmp/"
 var outputFormat = "┌──[$USER@$DEVICE] [$ID] [$DATE - $TIME]\n└╼ $MSG"
@@ -27,6 +22,11 @@ var dateFormat = "02Jan06"
 var timeFormat = "15:04"
 
 // End configurable section
+
+const cmdPrefix = "/"
+
+var commands = make(map[string]Command)
+var baseCommands = make([]string, 0)
 
 var k = keybase.NewKeybase()
 var channel keybase.Channel
@@ -47,7 +47,6 @@ func main() {
 	defer kbtui.Close()
 	kbtui.SetManagerFunc(layout)
 
-	printToView(kbtui, "Chat", fmt.Sprintf("Welcome %s!", k.Username))
 	go populateList(kbtui)
 	go updateChatWindow(kbtui)
 	if err := initKeybindings(kbtui); err != nil {
@@ -214,15 +213,8 @@ func layout(g *gocui.Gui) error {
 		}
 		chatView.Autoscroll = true
 		chatView.Wrap = true
-		fmt.Fprintf(chatView, "Your chats will appear here.\nSupported commands are as follows:\n")
-		fmt.Fprintln(chatView, "/j $username - Open your chat with $username")
-		fmt.Fprintln(chatView, "/j $team $channel - Open $channel from $team")
-		fmt.Fprintln(chatView, "/u $path $title - Uploads file $path with title $title")
-		fmt.Fprintln(chatView, "/d $msgId $downloadName - Downloads file from $msgId to $DownloadPath/$downloadName")
-		fmt.Fprintln(chatView, "/r $msgId $reaction - Reacts to $msgId with $reaction reaction can be emoji :+1:")
-		fmt.Fprintln(chatView, "      Can also be used for STRING reactions")
-		fmt.Fprintln(chatView, "/s  - Experimental: View all incoming messages from everywhere.")
-		fmt.Fprintln(chatView, "/q - Exit")
+		fmt.Fprintf(chatView, "Welcome %s!\n\nYour chats will appear here.\nSupported commands are as follows:\n\n", k.Username)
+		RunCommand(g, "help")
 	}
 	if inputView, err3 := g.SetView("Input", maxX/2-maxX/3, maxY-4, maxX-1, maxY-1); err3 != nil {
 		if err3 != gocui.ErrUnknownView {
@@ -398,4 +390,9 @@ func RegisterCommand(c Command) error {
 		return fmt.Errorf("The following aliases were not added because they already exist: %s", notAdded)
 	}
 	return nil
+}
+
+// RunCommand calls a command as if it was run by the user
+func RunCommand(g *gocui.Gui, c ...string) {
+	commands[c[0]].Exec(g, c)
 }
