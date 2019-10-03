@@ -23,6 +23,11 @@ For support or suggestions check out the [kbtui team](https://keybase.io/team/kb
 * Track multiple conversations at once
 
 ### Building and Running
+Easiest Way:
+```
+go get -u github.com/rudi9719/kbtui
+```
+
 ```
 go get ./
 go build
