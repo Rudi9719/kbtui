@@ -1,4 +1,4 @@
-// +build !rm_basic_commands allcommands reactcmd
+// +build !rm_basic_commands allcommands streamcmd
 
 package main
 
