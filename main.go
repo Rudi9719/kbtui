@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"log"
-	"strconv"
 	"strings"
 	"time"
 
@@ -352,8 +351,18 @@ func handleInput() error {
 			return nil
 		}
 	}
+	if inputString[:1] == "+" {
+		cmd := strings.Split(inputString, " ")
+		if len(cmd) == 3 {
+			RunCommand("react", cmd[1], cmd[2])
+		}
+		if len(cmd) == 2 {
+			RunCommand("react", cmd[1])
+		}
+	} else {
+		go sendChat(inputString)
+	}
 
-	go sendChat(inputString)
 	go populateList()
 	return nil
 }

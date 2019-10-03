@@ -2,16 +2,14 @@
 
 package main
 
-import (
-	"fmt"
-)
+import "strconv"
 
 func init() {
 	command := Command{
 		Cmd:         []string{"react", "r", "+"},
 		Description: "React to a message",
 		Help:        "",
-		Exec:        cmdUploadFile,
+		Exec:        cmdReact,
 	}
 
 	RegisterCommand(command)
@@ -20,7 +18,7 @@ func init() {
 func cmdReact(cmd []string) {
 	if len(cmd) == 3 {
 		reactToMessageId(cmd[1], cmd[2])
-	} else if len(cmd == 2) {
+	} else if len(cmd) == 2 {
 		reactToMessage(cmd[1])
 	}
 
