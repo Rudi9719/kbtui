@@ -14,7 +14,7 @@ import (
 const cmdPrefix = "/"
 
 var commands = make(map[string]Command)
-var baseCommands = make([]string)
+var baseCommands = make([]string, 0)
 
 // Configurable section
 var downloadPath = "/tmp/"
