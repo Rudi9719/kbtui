@@ -5,8 +5,6 @@ package main
 import (
 	"fmt"
 	"sort"
-
-	"github.com/jroimartin/gocui"
 )
 
 func init() {
@@ -20,7 +18,7 @@ func init() {
 	RegisterCommand(command)
 }
 
-func cmdHelp(g *gocui.Gui, cmd []string) {
+func cmdHelp(cmd []string) {
 	var helpText string
 	if len(cmd) == 1 {
 		sort.Strings(baseCommands)

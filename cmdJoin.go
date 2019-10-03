@@ -5,7 +5,6 @@ package main
 import (
 	"fmt"
 
-	"github.com/jroimartin/gocui"
 	"samhofi.us/x/keybase"
 )
 
@@ -20,7 +19,7 @@ func init() {
 	RegisterCommand(command)
 }
 
-func cmdJoin(g *gocui.Gui, cmd []string) {
+func cmdJoin(cmd []string) {
 	stream = false
 	if len(cmd) == 3 {
 		channel.MembersType = keybase.TEAM

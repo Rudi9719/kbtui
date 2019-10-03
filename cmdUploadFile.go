@@ -4,8 +4,6 @@ package main
 
 import (
 	"fmt"
-
-	"github.com/jroimartin/gocui"
 )
 
 func init() {
@@ -19,7 +17,7 @@ func init() {
 	RegisterCommand(command)
 }
 
-func cmdUploadFile(g *gocui.Gui, cmd []string) {
+func cmdUploadFile(cmd []string) {
 	filePath := cmd[1]
 	var fileName string
 	if len(cmd) == 3 {

@@ -352,7 +352,7 @@ func handleInput() error {
 	if strings.HasPrefix(inputString, cmdPrefix) {
 		cmd := strings.Split(inputString[len(cmdPrefix):], " ")
 		if c, ok := commands[cmd[0]]; ok {
-			c.Exec(g, cmd)
+			c.Exec(cmd)
 			return nil
 		} else if cmd[0] == "q" || cmd[0] == "quit" {
 			return gocui.ErrQuit
@@ -395,5 +395,5 @@ func RegisterCommand(c Command) error {
 
 // RunCommand calls a command as if it was run by the user
 func RunCommand(c ...string) {
-	commands[c[0]].Exec(g, c)
+	commands[c[0]].Exec(c)
 }
