@@ -124,15 +124,7 @@ func formatOutput(api keybase.ChatAPI) string {
 	return ret
 }
 
-func downloadFile(messageID int, fileName string) {
-	chat := k.NewChat(channel)
-	_, err := chat.Download(messageID, fmt.Sprintf("%s/%s", downloadPath, fileName))
-	if err != nil {
-		printToView("Feed", fmt.Sprintf("There was an error downloading %s from %s", fileName, channel.Name))
-	} else {
-		printToView("Feed", fmt.Sprintf("Downloaded %s from %s", fileName, channel.Name))
-	}
-}
+
 
 func populateList() {
 	_, maxY := g.Size()
@@ -353,12 +345,7 @@ func handleInput() error {
 	}
 	if inputString[:1] == "+" {
 		cmd := strings.Split(inputString, " ")
-		if len(cmd) == 3 {
-			RunCommand("react", cmd[1], cmd[2])
-		}
-		if len(cmd) == 2 {
-			RunCommand("react", cmd[1])
-		}
+		RunCommand(cmd...)
 	} else {
 		go sendChat(inputString)
 	}
