@@ -14,6 +14,7 @@ import (
 const cmdPrefix = "/"
 
 var commands = make(map[string]Command)
+var baseCommands = make([]string)
 
 // Configurable section
 var downloadPath = "/tmp/"
@@ -391,8 +392,11 @@ func quit(g *gocui.Gui, v *gocui.View) error {
 // RegisterCommand registers a command to be used within the client
 func RegisterCommand(c Command) error {
 	var notAdded string
-	for _, cmd := range c.Cmd {
+	for i, cmd := range c.Cmd {
 		if _, ok := commands[cmd]; !ok {
+			if i == 0 {
+				baseCommands = append(baseCommands, cmd)
+			}
 			commands[cmd] = c
 			continue
 		}
