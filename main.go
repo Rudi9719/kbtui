@@ -124,15 +124,7 @@ func formatOutput(api keybase.ChatAPI) string {
 	}
 	return ret
 }
-func uploadFile(g *gocui.Gui, filePath string, fileName string) {
-	chat := k.NewChat(channel)
-	_, err := chat.Upload(fileName, filePath)
-	if err != nil {
-		printToView(g, "Feed", fmt.Sprintf("There was an error uploading %s to %s", filePath, channel.Name))
-	} else {
-		printToView(g, "Feed", fmt.Sprintf("Uploaded %s to %s", filePath, channel.Name))
-	}
-}
+
 func downloadFile(g *gocui.Gui, messageID int, fileName string) {
 	chat := k.NewChat(channel)
 	_, err := chat.Download(messageID, fmt.Sprintf("%s/%s", downloadPath, fileName))
