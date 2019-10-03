@@ -11,7 +11,7 @@ import (
 
 func init() {
 	command := Command{
-		Cmd:         []string{"j", "join"},
+		Cmd:         []string{"join", "j"},
 		Description: "Join a channel",
 		Help:        "",
 		Exec:        cmdJoin,
