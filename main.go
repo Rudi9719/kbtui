@@ -13,6 +13,8 @@ import (
 
 const cmdPrefix = "/"
 
+var commands = make(map[string]Command)
+
 // Configurable section
 var downloadPath = "/tmp/"
 var outputFormat = "┌──[$USER@$DEVICE] [$ID] [$DATE - $TIME]\n└╼ $MSG"
@@ -356,86 +358,48 @@ func reactToMessageId(messageId string, reaction string) {
 	chat.React(ID, reaction)
 }
 func handleInput(g *gocui.Gui) error {
+	clearView(g, "Input")
 	inputString, _ := getInputString(g)
 	if inputString == "" {
 		return nil
 	}
-	command := strings.Split(inputString, " ")
-
-	switch strings.ToLower(command[0]) {
-	case "/q":
-		return gocui.ErrQuit
-	case "/j":
-		stream = false
-		if len(command) == 3 {
-			channel.MembersType = keybase.TEAM
-			channel.Name = command[1]
-			channel.TopicName = command[2]
-			printToView(g, "Feed", fmt.Sprintf("You are joining: @%s#%s", channel.Name, channel.TopicName))
-			clearView(g, "Chat")
-			go populateChat(g)
-		} else if len(command) == 2 {
-			channel.MembersType = keybase.USER
-			channel.Name = command[1]
-			channel.TopicName = ""
-			printToView(g, "Feed", fmt.Sprintf("You are joining: @%s", channel.Name))
-			clearView(g, "Chat")
-			go populateChat(g)
+	if strings.HasPrefix(inputString, cmdPrefix) {
+		cmd := strings.Split(inputString[len(cmdPrefix):], " ")
+		if c, ok := commands[cmd[0]]; ok {
+			c.Exec(g, cmd)
+			return nil
+		} else if cmd[0] == "q" || cmd[0] == "quit" {
+			return gocui.ErrQuit
 		} else {
-			printToView(g, "Feed", "To join a team use /j <team> <channel>")
-			printToView(g, "Feed", "To join a PM use /j <user>")
+			printToView(g, "Feed", fmt.Sprintf("Command '%s' not recognized", cmd[0]))
+			return nil
 		}
-	case "/u":
-		if len(command) == 3 {
-			filePath := command[1]
-			fileName := command[2]
-			uploadFile(g, filePath, fileName)
-		} else if len(command) == 2 {
-			filePath := command[1]
-			fileName := ""
-			uploadFile(g, filePath, fileName)
-		} else {
-			printToView(g, "Feed", "To upload a file, supply full path and optional title (no spaces)")
-		}
-	case "/d":
-		if len(command) == 3 {
-			messageId, err := strconv.Atoi(command[1])
-			if err != nil {
-				printToView(g, "Feed", "Invalid message ID")
-			} else {
-				fileName := command[2]
-				downloadFile(g, messageId, fileName)
-			}
-		} else if len(command) == 2 {
-			messageId, err := strconv.Atoi(command[1])
-			if err != nil {
-				printToView(g, "Feed", "Invalid message ID")
-			} else {
-				downloadFile(g, messageId, command[1])
-			}
-		}
-	case "/s":
-		clearView(g, "Chat")
-		stream = true
-		printToView(g, "Feed", "You have begun viewing the formatted stream.")
-	case "/r":
-		if len(command) == 3 {
-			reactToMessageId(command[1], command[2])
-		} else {
-			printToView(g, "Feed", "/r $messageId $desiredReaction")
-		}
-	default:
-		if inputString[:1] == "+" {
-			reactToMessage(strings.Replace(inputString, "+", "", 1))
-		} else {
-			go sendChat(inputString, g)
-		}
-		go populateList(g)
 	}
-	clearView(g, "Input")
+	if inputString[:1] == "+" {
+		reactToMessage(strings.Replace(inputString, "+", "", 1))
+	} else {
+		go sendChat(inputString, g)
+	}
+	go populateList(g)
 	return nil
 }
 
 func quit(g *gocui.Gui, v *gocui.View) error {
 	return gocui.ErrQuit
+}
+
+// RegisterCommand registers a command to be used within the client
+func RegisterCommand(c Command) error {
+	var notAdded string
+	for _, cmd := range c.Cmd {
+		if _, ok := commands[cmd]; !ok {
+			commands[cmd] = c
+			continue
+		}
+		notAdded = fmt.Sprintf("%s, %s", notAdded, cmd)
+	}
+	if notAdded != "" {
+		return fmt.Errorf("The following aliases were not added because they already exist: %s", notAdded)
+	}
+	return nil
 }
