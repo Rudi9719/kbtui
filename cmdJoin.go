@@ -11,7 +11,7 @@ import (
 func init() {
 	command := Command{
 		Cmd:         []string{"join", "j"},
-		Description: "/j $team/user $channel - Join a chat, $user or $team $channel",
+		Description: "$team/user $channel - Join a chat, $user or $team $channel",
 		Help:        "",
 		Exec:        cmdJoin,
 	}

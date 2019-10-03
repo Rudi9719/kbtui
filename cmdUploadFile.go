@@ -9,7 +9,7 @@ import (
 func init() {
 	command := Command{
 		Cmd:         []string{"upload", "u"},
-		Description: "/u $filePath $fileName - Upload file with optional name",
+		Description: "$filePath $fileName - Upload file with optional name",
 		Help:        "",
 		Exec:        cmdUploadFile,
 	}

@@ -7,7 +7,7 @@ import "strconv"
 func init() {
 	command := Command{
 		Cmd:         []string{"react", "r", "+"},
-		Description: "/r $messageId $reaction - React to a message (messageID is optional)",
+		Description: "$messageId $reaction - React to a message (messageID is optional)",
 		Help:        "",
 		Exec:        cmdReact,
 	}

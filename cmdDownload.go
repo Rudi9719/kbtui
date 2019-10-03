@@ -10,7 +10,7 @@ import (
 func init() {
 	command := Command{
 		Cmd:         []string{"download", "d"},
-		Description: "/d $messageId $fileName - Download a file to user's downloadpath",
+		Description: "$messageId $fileName - Download a file to user's downloadpath",
 		Help:        "",
 		Exec:        cmdDownloadFile,
 	}
