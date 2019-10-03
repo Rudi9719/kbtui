@@ -31,7 +31,7 @@ go build
 Or
 ```
 go get ./
-go run main.go
+go run *.go
 ```
 Occasionally when @dxb updates his API it will be necessary to run 
 `go get -u ./`
