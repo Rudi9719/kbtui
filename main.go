@@ -333,16 +333,7 @@ func handleMessage(api keybase.ChatAPI) {
 		}
 	}
 }
-func reactToMessage(reaction string) {
-	chat := k.NewChat(channel)
-	chat.React(lastMessage.ID, reaction)
 
-}
-func reactToMessageId(messageId string, reaction string) {
-	chat := k.NewChat(channel)
-	ID, _ := strconv.Atoi(messageId)
-	chat.React(ID, reaction)
-}
 func handleInput() error {
 	clearView("Input")
 	inputString, _ := getInputString()
@@ -361,11 +352,8 @@ func handleInput() error {
 			return nil
 		}
 	}
-	if inputString[:1] == "+" {
-		reactToMessage(strings.Replace(inputString, "+", "", 1))
-	} else {
-		go sendChat(inputString)
-	}
+
+	go sendChat(inputString)
 	go populateList()
 	return nil
 }
