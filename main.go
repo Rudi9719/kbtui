@@ -11,6 +11,8 @@ import (
 	"samhofi.us/x/keybase"
 )
 
+const cmdPrefix = "/"
+
 // Configurable section
 var downloadPath = "/tmp/"
 var outputFormat = "┌──[$USER@$DEVICE] [$ID] [$DATE - $TIME]\n└╼ $MSG"
