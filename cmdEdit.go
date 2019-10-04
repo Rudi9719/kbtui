@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+
+	"github.com/jroimartin/gocui"
 )
 
 func init() {
@@ -35,7 +37,24 @@ func cmdEdit(cmd []string) {
 			return
 		}
 		editString := origMessage.Result.Messages[0].Msg.Content.Text.Body
-		printToView("Input", fmt.Sprintf("/edit %d %s", messageId, editString))
+		g.Update(func(g *gocui.Gui) error {
+			inputView, err := g.View("Input")
+			if err != nil {
+				return err
+			} else {
+				editString = fmt.Sprintf("/edit %d %s", messageId, editString)
+				fmt.Fprintf(inputView, editString)
+				viewX, viewY := inputView.Size()
+				if len(editString) < viewX {
+					viewX = len(editString)
+					viewY = 0
+				} else {
+					viewX = viewX / len(editString)
+				}
+				inputView.MoveCursor(viewX, viewY, true)
+			}
+			return nil
+		})
 		return
 	}
 	if len(cmd) < 3 {
