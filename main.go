@@ -115,6 +115,7 @@ func formatOutput(api keybase.ChatAPI) string {
 		ret = strings.Replace(ret, "$ID", fmt.Sprintf("%d", api.Msg.ID), 1)
 		ret = strings.Replace(ret, "$DATE", fmt.Sprintf("%s", tm.Format(dateFormat)), 1)
 		ret = strings.Replace(ret, "$TIME", fmt.Sprintf("%s", tm.Format(timeFormat)), 1)
+		ret = strings.Replace(ret, "```", fmt.Sprintf("\n<code>\n"), 10)
 	}
 	if api.Msg.Content.Type == "attachment" {
 		ret = outputFormat
