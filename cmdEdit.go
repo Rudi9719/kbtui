@@ -33,7 +33,10 @@ func cmdEdit(cmd []string) {
 	messageId, _ = strconv.Atoi(cmd[1])
 	chat := k.NewChat(channel)
 	newMessage := strings.Join(cmd[2:], " ")
-	chat.Edit(messageId,newMessage)
+	_, err := chat.Edit(messageId,newMessage)
+	if err != nil {
+		printToView("Feed", fmt.Sprintf("Error editing message %d, %+v", messageId, err))
+	}
 	
 
 }
