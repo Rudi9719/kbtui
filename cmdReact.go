@@ -25,12 +25,16 @@ func cmdReact(cmd []string) {
 }
 
 func reactToMessage(reaction string) {
-	chat := k.NewChat(channel)
-	chat.React(lastMessage.ID, reaction)
-
+	doReact(lastMessage.ID, reaction)
 }
 func reactToMessageId(messageId string, reaction string) {
-	chat := k.NewChat(channel)
 	ID, _ := strconv.Atoi(messageId)
-	chat.React(ID, reaction)
+	doReact(ID, reaction)
+}
+func doReact(messageId int, reaction string) {
+	chat := k.NewChat(channel)
+	_, err := chat.React(messageId, reaction)
+	if err != nil {
+		printToView("Feed", "There was an error reacting to the message.")
+	}
 }
