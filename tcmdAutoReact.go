@@ -1,3 +1,4 @@
+// +ignore
 // +build type_commands autoreactcmd
 
 package main
