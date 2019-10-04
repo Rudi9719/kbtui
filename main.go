@@ -13,6 +13,7 @@ import (
 var commands = make(map[string]Command)
 var baseCommands = make([]string, 0)
 
+var dev = false
 var k = keybase.NewKeybase()
 var channel keybase.Channel
 var channels []keybase.Channel
@@ -25,7 +26,6 @@ func main() {
 		fmt.Println("You are not logged in.")
 		return
 	}
-
 	kbtui, err := gocui.NewGui(gocui.OutputNormal)
 	if err != nil {
 		log.Printf("%+v", err)
@@ -70,7 +70,7 @@ func populateChat() {
 		lastMessage.ID = api.Result.Messages[0].Msg.ID
 	}
 	for _, message := range api.Result.Messages {
-		if message.Msg.Content.Type == "text" {
+		if message.Msg.Content.Type == "text" || message.Msg.Content.Type == "attachment" {
 			if lastMessage.ID < 1 {
 				lastMessage.ID = message.Msg.ID
 			}
@@ -109,6 +109,17 @@ func formatOutput(api keybase.ChatAPI) string {
 		ret = strings.Replace(ret, "$DATE", fmt.Sprintf("%s", tm.Format(dateFormat)), 1)
 		ret = strings.Replace(ret, "$TIME", fmt.Sprintf("%s", tm.Format(timeFormat)), 1)
 	}
+	if api.Msg.Content.Type == "attachment" {
+		ret = outputFormat
+		tm := time.Unix(int64(api.Msg.SentAt), 0)
+		ret = strings.Replace(ret, "$MSG", "ATTACHMENT MSG", 1)
+		ret = strings.Replace(ret, "$USER", api.Msg.Sender.Username, 1)
+		ret = strings.Replace(ret, "$DEVICE", api.Msg.Sender.DeviceName, 1)
+		ret = strings.Replace(ret, "$ID", fmt.Sprintf("%d", api.Msg.ID), 1)
+		ret = strings.Replace(ret, "$DATE", fmt.Sprintf("%s", tm.Format(dateFormat)), 1)
+		ret = strings.Replace(ret, "$TIME", fmt.Sprintf("%s", tm.Format(timeFormat)), 1)
+	}
+
 	return ret
 }
 
@@ -245,9 +256,14 @@ func initKeybindings() error {
 }
 
 func updateChatWindow() {
+	
+	runOpts := keybase.RunOptions {
+		Dev: dev,
+	}
 	k.Run(func(api keybase.ChatAPI) {
 		handleMessage(api)
-	})
+	},
+	runOpts)
 
 }
 
@@ -257,7 +273,7 @@ func cleanChannelName(c string) string {
 }
 
 func handleMessage(api keybase.ChatAPI) {
-	if api.Msg.Content.Type == "text" {
+	if api.Msg.Content.Type == "text" || api.Msg.Content.Type == "attachment" {
 		go populateList()
 		msgBody := api.Msg.Content.Text.Body
 		msgSender := api.Msg.Sender.Username
