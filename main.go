@@ -11,6 +11,7 @@ import (
 	"samhofi.us/x/keybase"
 )
 
+var typeCommands = make(map[string]TypeCommand)
 var commands = make(map[string]Command)
 var baseCommands = make([]string, 0)
 
@@ -279,6 +280,14 @@ func cleanChannelName(c string) string {
 }
 
 func handleMessage(api keybase.ChatAPI) {
+	if _, ok := typeCommands[api.Msg.Content.Type]; ok {
+		if api.Msg.Channel.MembersType == channel.MembersType && cleanChannelName(api.Msg.Channel.Name) == channel.Name {
+			if channel.MembersType == keybase.TEAM && channel.TopicName != api.Msg.Channel.TopicName {
+			} else {
+				go typeCommands[api.Msg.Content.Type].Exec(api)
+			}
+		}
+	}
 	if api.Msg.Content.Type == "text" || api.Msg.Content.Type == "attachment" {
 		go populateList()
 		msgBody := api.Msg.Content.Text.Body
@@ -364,6 +373,22 @@ func handleInput() error {
 
 func quit(g *gocui.Gui, v *gocui.View) error {
 	return gocui.ErrQuit
+}
+
+// RegisterTypeCommand registers a command to be used within the client
+func RegisterTypeCommand(c TypeCommand) error {
+	var notAdded string
+	for _, cmd := range c.Cmd {
+		if _, ok := typeCommands[cmd]; !ok {
+			typeCommands[cmd] = c
+			continue
+		}
+		notAdded = fmt.Sprintf("%s, %s", notAdded, cmd)
+	}
+	if notAdded != "" {
+		return fmt.Errorf("The following aliases were not added because they already exist: %s", notAdded)
+	}
+	return nil
 }
 
 // RegisterCommand registers a command to be used within the client
