@@ -66,7 +66,9 @@ func populateChat() {
 	}
 	var printMe []string
 	var actuallyPrintMe string
-	lastMessage.ID = api.Result.Messages[0].Msg.ID
+	if len(api.Result.Messages) > 0 {
+		lastMessage.ID = api.Result.Messages[0].Msg.ID
+	}
 	for _, message := range api.Result.Messages {
 		if message.Msg.Content.Type == "text" {
 			if lastMessage.ID < 1 {
