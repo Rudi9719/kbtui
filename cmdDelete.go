@@ -9,7 +9,7 @@ import (
 
 func init() {
 	command := Command{
-		Cmd:         []string{"delete", "del"},
+		Cmd:         []string{"delete", "del", "-"},
 		Description: "$messageId - Delete a message by $messageId",
 		Help:        "",
 		Exec:        cmdDelete,
@@ -18,7 +18,13 @@ func init() {
 	RegisterCommand(command)
 }
 func cmdDelete(cmd []string) {
-	messageID, _ := strconv.Atoi(cmd[1])
+	var messageID int
+	if len(cmd) > 1 {
+		messageID, _ = strconv.Atoi(cmd[1])
+	} else {
+		messageID = lastMessage.ID
+	}
+
 	chat := k.NewChat(channel)
 	_, err := chat.Delete(messageID)
 	if err != nil {
