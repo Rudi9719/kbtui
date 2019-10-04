@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
 	"strings"
 	"time"
 
@@ -35,6 +36,11 @@ func main() {
 	g = kbtui
 	go populateList()
 	go updateChatWindow()
+	if len(os.Args) > 1 {
+		os.Args[0] = "join"
+		RunCommand(os.Args...)
+		
+	}
 	if err := initKeybindings(); err != nil {
 		log.Printf("%+v", err)
 	}
