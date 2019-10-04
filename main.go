@@ -39,7 +39,7 @@ func main() {
 	if len(os.Args) > 1 {
 		os.Args[0] = "join"
 		RunCommand(os.Args...)
-		
+
 	}
 	if err := initKeybindings(); err != nil {
 		log.Printf("%+v", err)
