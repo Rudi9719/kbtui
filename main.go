@@ -256,14 +256,14 @@ func initKeybindings() error {
 }
 
 func updateChatWindow() {
-	
-	runOpts := keybase.RunOptions {
+
+	runOpts := keybase.RunOptions{
 		Dev: dev,
 	}
 	k.Run(func(api keybase.ChatAPI) {
 		handleMessage(api)
 	},
-	runOpts)
+		runOpts)
 
 }
 

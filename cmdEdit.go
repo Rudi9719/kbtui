@@ -23,7 +23,7 @@ func cmdEdit(cmd []string) {
 	var messageId int
 	if len(cmd) == 2 {
 		messageId, _ = strconv.Atoi(cmd[1])
-		printToView("Input", fmt.Sprintf("/edit %d Type edit here",messageId))
+		printToView("Input", fmt.Sprintf("/edit %d Type edit here", messageId))
 		return
 	}
 	if len(cmd) < 3 {
@@ -33,11 +33,9 @@ func cmdEdit(cmd []string) {
 	messageId, _ = strconv.Atoi(cmd[1])
 	chat := k.NewChat(channel)
 	newMessage := strings.Join(cmd[2:], " ")
-	_, err := chat.Edit(messageId,newMessage)
+	_, err := chat.Edit(messageId, newMessage)
 	if err != nil {
 		printToView("Feed", fmt.Sprintf("Error editing message %d, %+v", messageId, err))
 	}
-	
 
 }
-
