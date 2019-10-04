@@ -351,7 +351,7 @@ func handleInput() error {
 			return nil
 		}
 	}
-	if inputString[:1] == "+" {
+	if inputString[:1] == "+" || inputString[:1] == "-" {
 		cmd := strings.Split(inputString, " ")
 		RunCommand(cmd...)
 	} else {
