@@ -1,4 +1,4 @@
-// +build ignore
+// +ignore
 // +build type_commands autoreactcmd
 
 package main
@@ -10,6 +10,7 @@ import (
 func init() {
 	command := TypeCommand{
 		Cmd:         []string{"text"},
+		Name:        "AutoReact",
 		Description: "Automatically reacts to every incoming message with an emoji",
 		Exec:        tcmdAutoReact,
 	}

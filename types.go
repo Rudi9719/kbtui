@@ -13,6 +13,7 @@ type Command struct {
 // TypeCommand outlines a command that reacts on message type
 type TypeCommand struct {
 	Cmd         []string              // Message types that trigger this command
+	Name        string                // The name of this command
 	Description string                // A short description of the command
 	Exec        func(keybase.ChatAPI) // A function that takes a raw chat message as input
 }
