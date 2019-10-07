@@ -26,7 +26,7 @@ func cmdWall(cmd []string) {
 	var actuallyPrintMe string
 	if len(cmd) > 1 {
 		for _, username := range cmd[1:] {
-			requestedUsers +=  fmt.Sprintf("%s ", username)
+			requestedUsers += fmt.Sprintf("%s ", username)
 			var newChan keybase.Channel
 			newChan.MembersType = keybase.USER
 			newChan.Name = username
@@ -62,7 +62,7 @@ func cmdWall(cmd []string) {
 				printMe = append(printMe, newMessage)
 			}
 		}
-		
+
 	}
 	for i := len(printMe) - 1; i >= 0; i-- {
 		actuallyPrintMe += printMe[i]
