@@ -43,7 +43,7 @@ func cmdPopulateWall(cmd []string) {
 		requestedUsers += cleanChannelName(channel.Name)
 
 	} else {
-		printToView("Feed", fmt.Sprintf("%+v", "\nError", channel.MembersType))
+		printToView("Feed", fmt.Sprintf("Error, can't run wall in teams", channel.MembersType))
 		return
 	}
 	if len(users) < 1 {
