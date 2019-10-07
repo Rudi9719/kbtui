@@ -2,7 +2,10 @@
 
 package main
 
-import "strconv"
+import (
+	"strconv"
+	"strings"
+)
 
 func init() {
 	command := Command{
@@ -16,8 +19,8 @@ func init() {
 }
 
 func cmdReact(cmd []string) {
-	if len(cmd) == 3 {
-		reactToMessageId(cmd[1], cmd[2])
+	if len(cmd) > 3 {
+		reactToMessageId(cmd[1], strings.Join(cmd[2:], " "))
 	} else if len(cmd) == 2 {
 		reactToMessage(cmd[1])
 	}
