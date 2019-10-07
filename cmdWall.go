@@ -4,6 +4,8 @@ package main
 
 import (
 	"fmt"
+	"strings"
+	"time"
 
 	"samhofi.us/x/keybase"
 )
@@ -27,7 +29,12 @@ func cmdPopulateWall(cmd []string) {
 	var requestedUsers string
 	var printMe []string
 	var actuallyPrintMe string
+	start := time.Now()
 	if len(cmd) > 1 {
+		if cmd[1] == "!all" {
+			go cmdAllWall()
+			return
+		}
 		for _, username := range cmd[1:] {
 			requestedUsers += fmt.Sprintf("%s ", username)
 			var newChan keybase.Channel
@@ -43,7 +50,8 @@ func cmdPopulateWall(cmd []string) {
 		requestedUsers += cleanChannelName(channel.Name)
 
 	} else {
-		printToView("Feed", fmt.Sprintf("Error, can't run wall in teams", channel.MembersType))
+		printToView("Feed", fmt.Sprintf("Error, can't run wall in teams"))
+		go cmdAllWall()
 		return
 	}
 	if len(users) < 1 {
@@ -54,15 +62,17 @@ func cmdPopulateWall(cmd []string) {
 		chat := k.NewChat(chann)
 		api, err := chat.Read()
 		if err != nil {
-			printToView("Feed", fmt.Sprintf("There was an error for user %s: %+v", cleanChannelName(chann.Name), err))
-			return
-		}
-		for _, message := range api.Result.Messages {
-			if message.Msg.Content.Type == "text" {
-				var apiCast keybase.ChatAPI
-				apiCast.Msg = &message.Msg
-				newMessage := formatOutput(apiCast)
-				printMe = append(printMe, newMessage)
+			if len(users) < 6 {
+				printToView("Feed", fmt.Sprintf("There was an error for user %s: %+v", cleanChannelName(chann.Name), err))
+			}
+		} else {
+			for _, message := range api.Result.Messages {
+				if message.Msg.Content.Type == "text" {
+					var apiCast keybase.ChatAPI
+					apiCast.Msg = &message.Msg
+					newMessage := formatOutput(apiCast)
+					printMe = append(printMe, newMessage)
+				}
 			}
 		}
 
@@ -73,5 +83,14 @@ func cmdPopulateWall(cmd []string) {
 			actuallyPrintMe += "\n"
 		}
 	}
+
 	printToView("Chat", fmt.Sprintf("\nWall:\n%s\n", actuallyPrintMe))
+	time.Sleep(1 * time.Millisecond)
+	printToView("Chat", fmt.Sprintf("Your wall query took %s", time.Since(start)))
+}
+func cmdAllWall() {
+	bytes, _ := k.Exec("list-following")
+	bigString := string(bytes)
+	following := strings.Split(bigString, "\n")
+	go cmdPopulateWall(following)
 }
