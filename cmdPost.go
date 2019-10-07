@@ -5,7 +5,7 @@ package main
 import (
 	"fmt"
 	"strings"
-	
+
 	"samhofi.us/x/keybase"
 )
 
