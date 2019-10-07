@@ -18,8 +18,11 @@ func init() {
 
 	RegisterCommand(command)
 }
-
 func cmdWall(cmd []string) {
+	go cmdPopulateWall(cmd)
+}
+
+func cmdPopulateWall(cmd []string) {
 	var users []keybase.Channel
 	var requestedUsers string
 	var printMe []string
