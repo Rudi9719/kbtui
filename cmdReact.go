@@ -19,7 +19,7 @@ func init() {
 }
 
 func cmdReact(cmd []string) {
-	if len(cmd) > 3 {
+	if len(cmd) > 2 {
 		reactToMessageId(cmd[1], strings.Join(cmd[2:], " "))
 	} else if len(cmd) == 2 {
 		reactToMessage(cmd[1])
