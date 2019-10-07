@@ -3,7 +3,7 @@
 package main
 
 import (
-
+	"fmt"
 	"strings"
 	
 	"samhofi.us/x/keybase"
@@ -26,5 +26,10 @@ func cmdPost(cmd []string) {
 	pubChan.Name = k.Username
 	post := strings.Join(cmd[1:], " ")
 	chat := k.NewChat(pubChan)
-	chat.Send(post)
+	_, err := chat.Send(post)
+	if err != nil {
+		printToView("Feed", fmt.Sprintf("There was an error with your post: %+v", err))
+	} else {
+		printToView("Feed", "You have publically posted to your wall, signed by your current device.")
+	}
 }
