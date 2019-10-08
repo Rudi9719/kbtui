@@ -22,8 +22,6 @@ func tcmdAutoReact(m keybase.ChatAPI) {
 	msgID := m.Msg.ID
 	channel := m.Msg.Channel
 	chat := k.NewChat(channel)
-	if m.Msg.Sender.Username == "majortrips" {
+	chat.React(msgID, ":+1:")
 
-		chat.React(msgID, ":+1:")
-	}
 }
