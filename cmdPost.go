@@ -1,4 +1,5 @@
-// +build !rm_basic_commands allcommands postcmd
+// +ignore
+// +build allcommands postcmd
 
 package main
 

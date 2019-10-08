@@ -1,5 +1,5 @@
 // +ignore
-// +build  wallcmd
+// +build allcommands wallcmd
 
 package main
 
