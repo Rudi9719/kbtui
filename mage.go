@@ -26,7 +26,12 @@ func BuildAutoReact() {
 	sh.Run("go", "build", "-tags", "autoreactcmd")
 }
 
-// Build kbtui with all Commands and TypeCommands enabled.
+// Build kbtui with all commands and TypeCommands disabled.
 func BuildAllCommands() {
+	sh.Run("go", "build", "-tags", "allcommands")
+}
+
+// Build kbtui with all Commands and TypeCommands enabled.
+func BuildAllCommandsT() {
 	sh.Run("go", "build", "-tags", "type_commands,allcommands")
 }
