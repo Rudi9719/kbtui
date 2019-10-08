@@ -52,8 +52,13 @@ func cmdPopulateWall(cmd []string) {
 		requestedUsers += cleanChannelName(channel.Name)
 
 	} else {
-		printToView("Feed", fmt.Sprintf("Error, can't run wall in teams"))
-		return
+		requestedUsers += k.Username
+		var newChan keybase.Channel
+		newChan.MembersType = keybase.USER
+		newChan.Name = k.Username
+		newChan.TopicName = ""
+		newChan.Public = true
+		users = append(users, newChan)
 	}
 	if len(users) < 1 {
 		return
@@ -65,6 +70,7 @@ func cmdPopulateWall(cmd []string) {
 		if err != nil {
 			if len(users) < 6 {
 				printToView("Feed", fmt.Sprintf("There was an error for user %s: %+v", cleanChannelName(chann.Name), err))
+				return
 			}
 		} else {
 			for i, message := range api.Result.Messages {
