@@ -1,4 +1,5 @@
-// +build !rm_basic_commands allcommands wallcmd
+// +ignore
+// +build  wallcmd
 
 package main
 
