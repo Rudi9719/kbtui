@@ -4,6 +4,7 @@ package main
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 	"time"
 
@@ -29,6 +30,7 @@ func cmdPopulateWall(cmd []string) {
 	var requestedUsers string
 	var printMe []string
 	var actuallyPrintMe string
+	result := make(map[int]keybase.ChatAPI)
 	start := time.Now()
 	if len(cmd) > 1 {
 		if cmd[1] == "!all" {
@@ -65,27 +67,30 @@ func cmdPopulateWall(cmd []string) {
 				printToView("Feed", fmt.Sprintf("There was an error for user %s: %+v", cleanChannelName(chann.Name), err))
 			}
 		} else {
-			for _, message := range api.Result.Messages {
+			for i, message := range api.Result.Messages {
 				if message.Msg.Content.Type == "text" {
 					var apiCast keybase.ChatAPI
-					apiCast.Msg = &message.Msg
+					apiCast.Msg = &api.Result.Messages[i].Msg
+					result[apiCast.Msg.SentAt] = apiCast
 					newMessage := formatOutput(apiCast)
 					printMe = append(printMe, newMessage)
+
 				}
 			}
 		}
 
 	}
-	for i := len(printMe) - 1; i >= 0; i-- {
-		actuallyPrintMe += printMe[i]
-		if i > 0 {
-			actuallyPrintMe += "\n"
-		}
-	}
 
-	printToView("Chat", fmt.Sprintf("\nWall:\n%s\n", actuallyPrintMe))
+	keys := make([]int, 0, len(result))
+	for k := range result {
+		keys = append(keys, k)
+	}
+	sort.Ints(keys)
 	time.Sleep(1 * time.Millisecond)
-	printToView("Chat", fmt.Sprintf("Your wall query took %s", time.Since(start)))
+	for _, k := range keys {
+		actuallyPrintMe += formatOutput(result[k]) + "\n"
+	}
+	printToView("Chat", fmt.Sprintf("\n<Wall>\n\n%s\nYour wall query took %s\n</Wall>\n", actuallyPrintMe, time.Since(start)))
 }
 func cmdAllWall() {
 	bytes, _ := k.Exec("list-following")
