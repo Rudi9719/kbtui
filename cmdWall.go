@@ -51,7 +51,6 @@ func cmdPopulateWall(cmd []string) {
 
 	} else {
 		printToView("Feed", fmt.Sprintf("Error, can't run wall in teams"))
-		go cmdAllWall()
 		return
 	}
 	if len(users) < 1 {
