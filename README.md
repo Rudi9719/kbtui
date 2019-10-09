@@ -16,27 +16,31 @@ For support or suggestions check out the [kbtui team](https://keybase.io/team/kb
 * Reactions to messages
 * Auto #general teams when not given a channel
 * Pretty format headers in List view from window size
-
-## Todo
 * Message editing
 * Twitter-style feed reading public messages
+
+## Todo
 * Track multiple conversations at once
+* Message replies
+
 
 ### Building and Running
 Easiest Way:
 ```
 go get -u github.com/rudi9719/kbtui
 ```
-
+Or you can do the following:
 ```
 go get ./
-go build
+go run build.go
+go run build.go {build, buildBeta... etc}
 ./kbtui
 ```
-Or
-```
-go get ./
-go run *.go
-```
+
+You may see an error with `go get ./` about PATHs, that may be safely ignored.
+
+If you see an error about a missing dependancy during a build, you'll want to resolve that.
+
+
 Occasionally when @dxb updates his API it will be necessary to run 
 `go get -u ./`
