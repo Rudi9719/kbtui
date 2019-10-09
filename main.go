@@ -202,6 +202,85 @@ func populateList() {
 	}
 }
 
+func filterStringSlice(ss []string, fv string) []string {
+    var rs []string
+    for _, s := range ss {
+        if strings.HasPrefix(s, fv) {
+            rs = append(rs, s)
+        }
+    }
+    return rs
+}
+
+func longestCommonPrefix(ss []string) string {
+    // cover the case where the slice has no or one members
+    switch len(ss) {
+        case 0:
+            return ""
+        case 1:
+            return ss[0]
+    }
+    // all strings are compared by bytes here forward (TBD unicode normalization?)
+    // establish min, max lenth members of the slice by iterating over the members
+    min, max := ss[0], ss[0]
+    for _, s := range ss[1:] {
+        switch {
+            case s < min:
+                min = s
+            case s > max:
+                max = s
+        }
+    }
+    // then iterate over the characters from min to max, as soon as chars don't match return
+    for i := 0; i < len(min) && i < len(max); i++ {
+        if min[i] != max[i] {
+            return min[:i]
+        }
+    }
+    // to cover the case where all members are equal, just return one
+    return min
+}
+
+func generateTabCompletionSlice(inputWord string) []string {
+    // gets all possible tab completion cantidates
+    if testVar, err := k.ChatList(); err != nil {
+        log.Printf("%+v", err)
+    } else {
+        // create a slice to hold the values
+        var firstSlice []string
+        // iterate over all the conversation results
+        for _, s := range testVar.Result.Conversations {
+            if s.Channel.MembersType == keybase.TEAM {
+                // its a team so add the topic name as a possible tab completion
+                firstSlice = append(firstSlice, s.Channel.TopicName)
+            } else {
+                // its a user, so clean the name and append the users name as a possible tab completion
+                firstSlice = append(firstSlice, cleanChannelName(s.Channel.Name))
+            }
+        }
+        // now return the resultSlice which contains all that are prefixed with inputWord
+        resultSlice := filterStringSlice(firstSlice, inputWord)
+        return resultSlice
+    }
+    return nil
+}
+
+func handleTab() error {
+    inputString, err := getInputString("Input")
+    if err != nil {
+        return err
+    } else {
+        // if you successfully get an input string, grab the last word from the string
+        ss := strings.Split(inputString, " ")
+        s := ss[len(ss)-1]
+        // now call get the list of all possible cantidates that have that as a prefix
+        resultSlice := generateTabCompletionSlice(s)
+        result := longestCommonPrefix(resultSlice)
+        printToView("Feed", fmt.Sprintf("TabCompletion: %s", result))
+    }
+    return nil
+}
+
 func clearView(viewName string) {
 	g.Update(func(g *gocui.Gui) error {
 		inputView, err := g.View(viewName)
@@ -327,6 +406,12 @@ func initKeybindings() error {
 		}); err != nil {
 		return err
 	}
+    if err := g.SetKeybinding("Input", gocui.KeyTab, gocui.ModNone,
+        func(g *gocui.Gui, v *gocui.View) error {
+            return handleTab()
+        }); err != nil {
+        return err
+    }
 	if err := g.SetKeybinding("Edit", gocui.KeyEnter, gocui.ModNone,
 		func(g *gocui.Gui, v *gocui.View) error {
 			popupView("Chat")
