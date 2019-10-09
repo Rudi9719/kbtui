@@ -62,10 +62,25 @@ func viewTitle(viewName string, title string) {
 	})
 }
 func popupView(viewName string) {
-	_, err := g.SetViewOnTop(viewName)
+	_, err := g.SetCurrentView(viewName)
 	if err != nil {
 		printToView("Feed", fmt.Sprintf("%+v", err))
 	}
+	_, err = g.SetViewOnTop(viewName)
+	if err != nil {
+		printToView("Feed", fmt.Sprintf("%+v", err))
+	}
+	g.Update(func(g *gocui.Gui) error {
+		updatingView, err := g.View(viewName)
+		if err != nil {
+			return err
+		} else {
+			viewX, viewY := updatingView.Size()
+			updatingView.MoveCursor(viewX, viewY, true)
+		}
+		return nil
+
+	})
 }
 
 func populateChat() {
@@ -215,10 +230,12 @@ func printToView(viewName string, message string) {
 
 func layout(g *gocui.Gui) error {
 	maxX, maxY := g.Size()
-	if editView, err := g.SetView("Edit", maxX/2, maxY/2, maxX/2+10, maxY/2+10); err != nil {
+	if editView, err := g.SetView("Edit", maxX/2-maxX/3+1, maxY/2, maxX-2, maxY/2+10); err != nil {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
+		editView.Editable = true
+		editView.Wrap = true
 		fmt.Fprintln(editView, "Edit window. Should disappear")
 	}
 	if feedView, err := g.SetView("Feed", maxX/2-maxX/3, 0, maxX-1, maxY/5); err != nil {
@@ -259,15 +276,15 @@ func layout(g *gocui.Gui) error {
 	return nil
 }
 
-func getInputString() (string, error) {
-	inputView, _ := g.View("Input")
+func getInputString(viewName string) (string, error) {
+	inputView, _ := g.View(viewName)
 	return inputView.Line(0)
 }
 
 func initKeybindings() error {
 	if err := g.SetKeybinding("", gocui.KeyCtrlC, gocui.ModNone,
 		func(g *gocui.Gui, v *gocui.View) error {
-			input, err := getInputString()
+			input, err := getInputString("Input")
 			if err != nil {
 				return err
 			}
@@ -282,7 +299,16 @@ func initKeybindings() error {
 	}
 	if err := g.SetKeybinding("Input", gocui.KeyEnter, gocui.ModNone,
 		func(g *gocui.Gui, v *gocui.View) error {
-			return handleInput()
+			return handleInput("Input")
+		}); err != nil {
+		return err
+	}
+	if err := g.SetKeybinding("Edit", gocui.KeyEnter, gocui.ModNone,
+		func(g *gocui.Gui, v *gocui.View) error {
+			popupView("Chat")
+			popupView("Input")
+			return handleInput("Edit")
+
 		}); err != nil {
 		return err
 	}
@@ -369,9 +395,9 @@ func handleMessage(api keybase.ChatAPI) {
 	}
 }
 
-func handleInput() error {
-	clearView("Input")
-	inputString, _ := getInputString()
+func handleInput(viewName string) error {
+	clearView(viewName)
+	inputString, _ := getInputString(viewName)
 	if inputString == "" {
 		return nil
 	}
