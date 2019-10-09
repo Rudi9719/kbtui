@@ -24,27 +24,19 @@ var lastMessage keybase.ChatAPI
 var g *gocui.Gui
 
 func main() {
-	fmt.Println("Checking login")
 	if !k.LoggedIn {
 		fmt.Println("You are not logged in.")
 		return
 	}
-	fmt.Println("Creating err")
 	var err error
-	fmt.Println("creating kbtui")
 	g, err = gocui.NewGui(gocui.OutputNormal, false)
 	if err != nil {
-		fmt.Println("Err wasn't nil")
 		fmt.Printf("%+v", err)
 	}
-	fmt.Println("defer g.Close()")
 	defer g.Close()
-	fmt.Println("SetManagerFunc")
 	g.SetManagerFunc(layout)
-	fmt.Println("Population")
 	go populateList()
 	go updateChatWindow()
-	fmt.Println("Args")
 	if len(os.Args) > 1 {
 		os.Args[0] = "join"
 		RunCommand(os.Args...)
@@ -54,11 +46,44 @@ func main() {
 	if err := initKeybindings(); err != nil {
 		fmt.Printf("%+v", err)
 	}
-	fmt.Println("Mainloop start")
 	if err := g.MainLoop(); err != nil && !gocui.IsQuit(err) {
 		fmt.Printf("%+v", err)
 	}
 }
+
+func viewTitle(viewName string, title string) {
+	g.Update(func(g *gocui.Gui) error {
+		updatingView, err := g.View(viewName)
+		if err != nil {
+			return err
+		} else {
+			updatingView.Title = title
+		}
+		return nil
+	})
+}
+func popupView(viewName string) {
+	_, err := g.SetCurrentView(viewName)
+	if err != nil {
+		printToView("Feed", fmt.Sprintf("%+v", err))
+	}
+	_, err = g.SetViewOnTop(viewName)
+	if err != nil {
+		printToView("Feed", fmt.Sprintf("%+v", err))
+	}
+	g.Update(func(g *gocui.Gui) error {
+		updatingView, err := g.View(viewName)
+		if err != nil {
+			return err
+		} else {
+			viewX, viewY := updatingView.Size()
+			updatingView.MoveCursor(viewX, viewY, true)
+		}
+		return nil
+
+	})
+}
+
 func populateChat() {
 	lastMessage.ID = 0
 	chat := k.NewChat(channel)
@@ -206,12 +231,21 @@ func printToView(viewName string, message string) {
 
 func layout(g *gocui.Gui) error {
 	maxX, maxY := g.Size()
+	if editView, err := g.SetView("Edit", maxX/2-maxX/3+1, maxY/2, maxX-2, maxY/2+10, 0); err != nil {
+	if !gocui.IsUnknownView(err) {
+			return err
+		}
+		editView.Editable = true
+		editView.Wrap = true
+		fmt.Fprintln(editView, "Edit window. Should disappear")
+	}
 	if feedView, err := g.SetView("Feed", maxX/2-maxX/3, 0, maxX-1, maxY/5, 0); err != nil {
 		if !gocui.IsUnknownView(err) {
 			return err
 		}
 		feedView.Autoscroll = true
 		feedView.Wrap = true
+		feedView.Title = "Feed Window"
 		fmt.Fprintln(feedView, "Feed Window - If you are mentioned or receive a PM it will show here")
 	}
 	if chatView, err2 := g.SetView("Chat", maxX/2-maxX/3, maxY/5+1, maxX-1, maxY-5, 0); err2 != nil {
@@ -232,12 +266,14 @@ func layout(g *gocui.Gui) error {
 		}
 		inputView.Editable = true
 		inputView.Wrap = true
+		inputView.Title = " Not in a chat /j to join"
 		g.Cursor = true
 	}
 	if listView, err4 := g.SetView("List", 0, 0, maxX/2-maxX/3-1, maxY-1, 0); err4 != nil {
 		if !gocui.IsUnknownView(err4) {
 			return err4
 		}
+		listView.Title = "Channels"
 		fmt.Fprintf(listView, "Lists\nWindow\nTo view\n activity")
 	}
 	return nil
@@ -264,15 +300,15 @@ func layout2(g *gocui.Gui) error {
 	return nil
 }
 
-func getInputString() (string, error) {
-	inputView, _ := g.View("Input")
+func getInputString(viewName string) (string, error) {
+	inputView, _ := g.View(viewName)
 	return inputView.Line(0)
 }
 
 func initKeybindings() error {
 	if err := g.SetKeybinding("", gocui.KeyCtrlC, gocui.ModNone,
 		func(g *gocui.Gui, v *gocui.View) error {
-			input, err := getInputString()
+			input, err := getInputString("Input")
 			if err != nil {
 				return err
 			}
@@ -287,7 +323,16 @@ func initKeybindings() error {
 	}
 	if err := g.SetKeybinding("Input", gocui.KeyEnter, gocui.ModNone,
 		func(g *gocui.Gui, v *gocui.View) error {
-			return handleInput()
+			return handleInput("Input")
+		}); err != nil {
+		return err
+	}
+	if err := g.SetKeybinding("Edit", gocui.KeyEnter, gocui.ModNone,
+		func(g *gocui.Gui, v *gocui.View) error {
+			popupView("Chat")
+			popupView("Input")
+			return handleInput("Edit")
+
 		}); err != nil {
 		return err
 	}
@@ -345,6 +390,7 @@ func handleMessage(api keybase.ChatAPI) {
 					}
 
 				}
+				fmt.Print("\a")
 			}
 			if api.Msg.Channel.MembersType == channel.MembersType && cleanChannelName(api.Msg.Channel.Name) == channel.Name {
 				if channel.MembersType == keybase.TEAM && channel.TopicName != api.Msg.Channel.TopicName {
@@ -374,9 +420,9 @@ func handleMessage(api keybase.ChatAPI) {
 	}
 }
 
-func handleInput() error {
-	clearView("Input")
-	inputString, _ := getInputString()
+func handleInput(viewName string) error {
+	clearView(viewName)
+	inputString, _ := getInputString(viewName)
 	if inputString == "" {
 		return nil
 	}

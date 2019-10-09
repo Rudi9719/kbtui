@@ -27,6 +27,7 @@ func cmdJoin(cmd []string) {
 		channel.TopicName = cmd[2]
 		printToView("Feed", fmt.Sprintf("You are joining: @%s#%s", channel.Name, channel.TopicName))
 		clearView("Chat")
+		viewTitle("Input", fmt.Sprintf(" @%s#%s ", channel.Name, channel.TopicName))
 		go populateChat()
 	} else if len(cmd) == 2 {
 		channel.MembersType = keybase.USER
@@ -34,6 +35,7 @@ func cmdJoin(cmd []string) {
 		channel.TopicName = ""
 		printToView("Feed", fmt.Sprintf("You are joining: @%s", channel.Name))
 		clearView("Chat")
+		viewTitle("Input", fmt.Sprintf(" @%s ", channel.Name))
 		go populateChat()
 	} else {
 		printToView("Feed", fmt.Sprintf("To join a team use %sjoin <team> <channel>", cmdPrefix))
