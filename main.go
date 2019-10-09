@@ -244,7 +244,7 @@ func layout(g *gocui.Gui) error {
 		}
 		feedView.Autoscroll = true
 		feedView.Wrap = true
-		feedView.Title = "Feed"
+		feedView.Title = "Feed Window"
 		fmt.Fprintln(feedView, "Feed Window - If you are mentioned or receive a PM it will show here")
 	}
 	if chatView, err2 := g.SetView("Chat", maxX/2-maxX/3, maxY/5+1, maxX-1, maxY-5); err2 != nil {
@@ -272,6 +272,7 @@ func layout(g *gocui.Gui) error {
 		if err4 != gocui.ErrUnknownView {
 			return err4
 		}
+		listView.Title = "Channels"
 		fmt.Fprintf(listView, "Lists\nWindow\nTo view\n activity")
 	}
 	return nil
@@ -367,6 +368,7 @@ func handleMessage(api keybase.ChatAPI) {
 					}
 
 				}
+				fmt.Print("\a")
 			}
 			if api.Msg.Channel.MembersType == channel.MembersType && cleanChannelName(api.Msg.Channel.Name) == channel.Name {
 				if channel.MembersType == keybase.TEAM && channel.TopicName != api.Msg.Channel.TopicName {
