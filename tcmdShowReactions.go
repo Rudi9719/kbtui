@@ -1,5 +1,4 @@
-// +ignore
-// +build type_commands showreactionscmd
+// +build !rm_basic_commands type_commands showreactionscmd
 
 package main
 
