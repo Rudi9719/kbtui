@@ -49,6 +49,25 @@ func main() {
 		log.Printf("%+v", err)
 	}
 }
+
+func viewTitle(viewName string, title string) {
+	g.Update(func(g *gocui.Gui) error {
+		updatingView, err := g.View(viewName)
+		if err != nil {
+			return err
+		} else {
+			updatingView.Title = title
+		}
+		return nil
+	})
+}
+func popupView(viewName string) {
+	_, err := g.SetViewOnTop(viewName)
+	if err != nil {
+		printToView("Feed", fmt.Sprintf("%+v", err))
+	}
+}
+
 func populateChat() {
 	lastMessage.ID = 0
 	chat := k.NewChat(channel)
@@ -196,12 +215,19 @@ func printToView(viewName string, message string) {
 
 func layout(g *gocui.Gui) error {
 	maxX, maxY := g.Size()
+	if editView, err := g.SetView("Edit", maxX/2, maxY/2, maxX/2+10, maxY/2+10); err != nil {
+		if err != gocui.ErrUnknownView {
+			return err
+		}
+		fmt.Fprintln(editView, "Edit window. Should disappear")
+	}
 	if feedView, err := g.SetView("Feed", maxX/2-maxX/3, 0, maxX-1, maxY/5); err != nil {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
 		feedView.Autoscroll = true
 		feedView.Wrap = true
+		feedView.Title = "Feed"
 		fmt.Fprintln(feedView, "Feed Window - If you are mentioned or receive a PM it will show here")
 	}
 	if chatView, err2 := g.SetView("Chat", maxX/2-maxX/3, maxY/5+1, maxX-1, maxY-5); err2 != nil {
