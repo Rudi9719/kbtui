@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jroimartin/gocui"
+	"github.com/awesome-gocui/gocui"
 	"samhofi.us/x/keybase"
 )
 
@@ -24,29 +24,39 @@ var lastMessage keybase.ChatAPI
 var g *gocui.Gui
 
 func main() {
+	fmt.Println("Checking login")
 	if !k.LoggedIn {
 		fmt.Println("You are not logged in.")
 		return
 	}
-	kbtui, err := gocui.NewGui(gocui.OutputNormal)
+	fmt.Println("Creating err")
+	var err error
+	fmt.Println("creating kbtui")
+	g, err = gocui.NewGui(gocui.OutputNormal, false)
 	if err != nil {
-		log.Printf("%+v", err)
+		fmt.Println("Err wasn't nil")
+		fmt.Printf("%+v", err)
 	}
-	defer kbtui.Close()
-	kbtui.SetManagerFunc(layout)
-	g = kbtui
+	fmt.Println("defer g.Close()")
+	defer g.Close()
+	fmt.Println("SetManagerFunc")
+	g.SetManagerFunc(layout)
+	fmt.Println("Population")
 	go populateList()
 	go updateChatWindow()
+	fmt.Println("Args")
 	if len(os.Args) > 1 {
 		os.Args[0] = "join"
 		RunCommand(os.Args...)
 
 	}
+	fmt.Println("initKeybindings")
 	if err := initKeybindings(); err != nil {
-		log.Printf("%+v", err)
+		fmt.Printf("%+v", err)
 	}
-	if err := kbtui.MainLoop(); err != nil && err != gocui.ErrQuit {
-		log.Printf("%+v", err)
+	fmt.Println("Mainloop start")
+	if err := g.MainLoop(); err != nil && !gocui.IsQuit(err) {
+		fmt.Printf("%+v", err)
 	}
 }
 func populateChat() {
@@ -196,7 +206,7 @@ func printToView(viewName string, message string) {
 
 func layout(g *gocui.Gui) error {
 	maxX, maxY := g.Size()
-	if feedView, err := g.SetView("Feed", maxX/2-maxX/3, 0, maxX-1, maxY/5); err != nil {
+	if feedView, err := g.SetView("Feed", maxX/2-maxX/3, 0, maxX-1, maxY/5, 0); err != nil {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
@@ -204,7 +214,7 @@ func layout(g *gocui.Gui) error {
 		feedView.Wrap = true
 		fmt.Fprintln(feedView, "Feed Window - If you are mentioned or receive a PM it will show here")
 	}
-	if chatView, err2 := g.SetView("Chat", maxX/2-maxX/3, maxY/5+1, maxX-1, maxY-5); err2 != nil {
+	if chatView, err2 := g.SetView("Chat", maxX/2-maxX/3, maxY/5+1, maxX-1, maxY-5, 0); err2 != nil {
 		if err2 != gocui.ErrUnknownView {
 			return err2
 		}
@@ -213,7 +223,7 @@ func layout(g *gocui.Gui) error {
 		fmt.Fprintf(chatView, "Welcome %s!\n\nYour chats will appear here.\nSupported commands are as follows:\n\n", k.Username)
 		RunCommand("help")
 	}
-	if inputView, err3 := g.SetView("Input", maxX/2-maxX/3, maxY-4, maxX-1, maxY-1); err3 != nil {
+	if inputView, err3 := g.SetView("Input", maxX/2-maxX/3, maxY-4, maxX-1, maxY-1, 0); err3 != nil {
 		if err3 != gocui.ErrUnknownView {
 			return err3
 		}
@@ -224,11 +234,32 @@ func layout(g *gocui.Gui) error {
 		inputView.Wrap = true
 		g.Cursor = true
 	}
-	if listView, err4 := g.SetView("List", 0, 0, maxX/2-maxX/3-1, maxY-1); err4 != nil {
+	if listView, err4 := g.SetView("List", 0, 0, maxX/2-maxX/3-1, maxY-1, 0); err4 != nil {
 		if err4 != gocui.ErrUnknownView {
 			return err4
 		}
 		fmt.Fprintf(listView, "Lists\nWindow\nTo view\n activity")
+	}
+	return nil
+}
+func layout2(g *gocui.Gui) error {
+	maxX, maxY := g.Size()
+	if feedView, err := g.SetView("Feed2", maxX/2-maxX/3, 0, maxX-1, maxY/5, 0); err != nil {
+		if err != gocui.ErrUnknownView {
+			return err
+		}
+		feedView.Autoscroll = true
+		feedView.Wrap = true
+		fmt.Fprintln(feedView, "Feed Window - If you are mentioned or receive a PM it will show here")
+	}
+	if chatView, err2 := g.SetView("Chat2", maxX/2-maxX/3, maxY/5+1, maxX-1, maxY-5, 0); err2 != nil {
+		if err2 != gocui.ErrUnknownView {
+			return err2
+		}
+		chatView.Autoscroll = true
+		chatView.Wrap = true
+		fmt.Fprintf(chatView, "Welcome %s!\n\nYour chats will appear here.\nSupported commands are as follows:\n\n", k.Username)
+		RunCommand("help")
 	}
 	return nil
 }
