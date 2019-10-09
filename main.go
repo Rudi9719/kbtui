@@ -357,6 +357,7 @@ func handleMessage(api keybase.ChatAPI) {
 							// We are in a team
 							if topicName != channel.TopicName {
 								printToView("Feed", fmt.Sprintf("[ %s#%s ] %s: %s", channelName, topicName, msgSender, msgBody))
+								fmt.Print("\a")
 							}
 
 							break
@@ -365,10 +366,10 @@ func handleMessage(api keybase.ChatAPI) {
 				} else {
 					if msgSender != channel.Name {
 						printToView("Feed", fmt.Sprintf("PM from @%s: %s", cleanChannelName(channelName), msgBody))
+						fmt.Print("\a")
 					}
 
 				}
-				fmt.Print("\a")
 			}
 			if api.Msg.Channel.MembersType == channel.MembersType && cleanChannelName(api.Msg.Channel.Name) == channel.Name {
 				if channel.MembersType == keybase.TEAM && channel.TopicName != api.Msg.Channel.TopicName {
