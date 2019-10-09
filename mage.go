@@ -35,6 +35,7 @@ func BuildAllCommands() {
 func BuildAllCommandsT() {
 	sh.Run("go", "build", "-tags", "type_commands,allcommands")
 }
+
 // Build kbtui with beta functionality
 func BuildBeta() {
 	sh.Run("go", "build", "-tags", "allcommands,showreactionscmd")
