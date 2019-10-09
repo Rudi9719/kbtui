@@ -207,7 +207,7 @@ func printToView(viewName string, message string) {
 func layout(g *gocui.Gui) error {
 	maxX, maxY := g.Size()
 	if feedView, err := g.SetView("Feed", maxX/2-maxX/3, 0, maxX-1, maxY/5, 0); err != nil {
-		if err != gocui.ErrUnknownView {
+		if !gocui.IsUnknownView(err) {
 			return err
 		}
 		feedView.Autoscroll = true
@@ -215,7 +215,7 @@ func layout(g *gocui.Gui) error {
 		fmt.Fprintln(feedView, "Feed Window - If you are mentioned or receive a PM it will show here")
 	}
 	if chatView, err2 := g.SetView("Chat", maxX/2-maxX/3, maxY/5+1, maxX-1, maxY-5, 0); err2 != nil {
-		if err2 != gocui.ErrUnknownView {
+		if !gocui.IsUnknownView(err2) {
 			return err2
 		}
 		chatView.Autoscroll = true
@@ -224,7 +224,7 @@ func layout(g *gocui.Gui) error {
 		RunCommand("help")
 	}
 	if inputView, err3 := g.SetView("Input", maxX/2-maxX/3, maxY-4, maxX-1, maxY-1, 0); err3 != nil {
-		if err3 != gocui.ErrUnknownView {
+		if !gocui.IsUnknownView(err3) {
 			return err3
 		}
 		if _, err := g.SetCurrentView("Input"); err != nil {
@@ -235,7 +235,7 @@ func layout(g *gocui.Gui) error {
 		g.Cursor = true
 	}
 	if listView, err4 := g.SetView("List", 0, 0, maxX/2-maxX/3-1, maxY-1, 0); err4 != nil {
-		if err4 != gocui.ErrUnknownView {
+		if !gocui.IsUnknownView(err4) {
 			return err4
 		}
 		fmt.Fprintf(listView, "Lists\nWindow\nTo view\n activity")
@@ -245,7 +245,7 @@ func layout(g *gocui.Gui) error {
 func layout2(g *gocui.Gui) error {
 	maxX, maxY := g.Size()
 	if feedView, err := g.SetView("Feed2", maxX/2-maxX/3, 0, maxX-1, maxY/5, 0); err != nil {
-		if err != gocui.ErrUnknownView {
+		if !gocui.IsUnknownView(err) {
 			return err
 		}
 		feedView.Autoscroll = true
@@ -253,7 +253,7 @@ func layout2(g *gocui.Gui) error {
 		fmt.Fprintln(feedView, "Feed Window - If you are mentioned or receive a PM it will show here")
 	}
 	if chatView, err2 := g.SetView("Chat2", maxX/2-maxX/3, maxY/5+1, maxX-1, maxY-5, 0); err2 != nil {
-		if err2 != gocui.ErrUnknownView {
+		if !gocui.IsUnknownView(err2) {
 			return err2
 		}
 		chatView.Autoscroll = true
