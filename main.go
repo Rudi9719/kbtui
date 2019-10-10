@@ -294,8 +294,10 @@ func handleTab() error {
         // now call get the list of all possible cantidates that have that as a prefix
         resultSlice := generateTabCompletionSlice(s)
         lcp := longestCommonPrefix(resultSlice)
-        remainder := stringRemainder(s, lcp)
-        writeToView("Input", remainder)
+        if lcp != "" {
+            remainder := stringRemainder(s, lcp)
+            writeToView("Input", remainder)
+        }
     }
     return nil
 }
