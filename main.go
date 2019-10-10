@@ -273,6 +273,7 @@ func generateTabCompletionSlice(inputWord string) []string {
         if s.MembersType == keybase.TEAM {
             // its a team so add the topic name as a possible tab completion
             firstSlice = append(firstSlice, s.TopicName)
+            firstSlice = append(firstSlice, s.Name)
         } else {
             // its a user, so clean the name and append the users name as a possible tab completion
             firstSlice = append(firstSlice, cleanChannelName(s.Name))
