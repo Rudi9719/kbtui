@@ -141,28 +141,33 @@ func sendChat(message string) {
 }
 func formatOutput(api keybase.ChatAPI) string {
 	ret := ""
-	if api.Msg.Content.Type == "text" {
-		ret = outputFormat
+	msgType := api.Msg.Content.Type
+	switch (msgType) {
+		case "text", "attachment":
+		var c = messageHeaderColor
+		ret = colorText(outputFormat, c, noColor)
 		tm := time.Unix(int64(api.Msg.SentAt), 0)
-		ret = strings.Replace(ret, "$MSG", api.Msg.Content.Text.Body, 1)
-		ret = strings.Replace(ret, "$USER", api.Msg.Sender.Username, 1)
-		ret = strings.Replace(ret, "$DEVICE", api.Msg.Sender.DeviceName, 1)
-		ret = strings.Replace(ret, "$ID", fmt.Sprintf("%d", api.Msg.ID), 1)
-		ret = strings.Replace(ret, "$DATE", fmt.Sprintf("%s", tm.Format(dateFormat)), 1)
-		ret = strings.Replace(ret, "$TIME", fmt.Sprintf("%s", tm.Format(timeFormat)), 1)
-		ret = strings.Replace(ret, "```", fmt.Sprintf("\n<code>\n"), 10)
-	}
-	if api.Msg.Content.Type == "attachment" {
-		ret = outputFormat
-		tm := time.Unix(int64(api.Msg.SentAt), 0)
-		ret = strings.Replace(ret, "$MSG", "ATTACHMENT MSG", 1)
-		ret = strings.Replace(ret, "$USER", api.Msg.Sender.Username, 1)
-		ret = strings.Replace(ret, "$DEVICE", api.Msg.Sender.DeviceName, 1)
-		ret = strings.Replace(ret, "$ID", fmt.Sprintf("%d", api.Msg.ID), 1)
-		ret = strings.Replace(ret, "$DATE", fmt.Sprintf("%s", tm.Format(dateFormat)), 1)
-		ret = strings.Replace(ret, "$TIME", fmt.Sprintf("%s", tm.Format(timeFormat)), 1)
-	}
+		var msg = api.Msg.Content.Text.Body
+		// mention teams or users
+		msg = colorRegex(msg, `(@\w*(\.\w+)*)`, messageLinkColor, messageBodyColor)
+		// mention URL
+		msg = colorRegex(msg, `(https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*))`, messageLinkColor, messageBodyColor)
+		msg = colorText(colorReplaceMentionMe(msg, messageBodyColor), messageBodyColor,c)
+		if msgType == "attachment" {
+			msg = fmt.Sprintf("%s\n%s", msg, colorText("[Attachment]", messageAttachmentColor, c))
+		}
 
+		user := colorUsername(api.Msg.Sender.Username, c)
+		device := colorText(api.Msg.Sender.Username, messageSenderDeviceColor, c)
+		msgId := colorText(fmt.Sprintf("%d", api.Msg.ID), messageIdColor, c)
+		ts := colorText(fmt.Sprintf("%s", tm.Format(timeFormat)), messageTimeColor, c)
+		ret = strings.Replace(ret, "$MSG", msg, 1)
+		ret = strings.Replace(ret, "$USER", user, 1)
+		ret = strings.Replace(ret, "$DEVICE", device, 1)
+		ret = strings.Replace(ret, "$ID", msgId, 1)
+		ret = strings.Replace(ret, "$TIME", ts, 1)
+		ret = strings.Replace(ret, "```", fmt.Sprintf("\n<code>\n"), -1)
+	}
 	return ret
 }
 
@@ -173,9 +178,9 @@ func populateList() {
 	} else {
 
 		clearView("List")
-		var recentPMs = "---[PMs]---\n"
+		var recentPMs = fmt.Sprintf("%s---[PMs]---%s\n", channelsHeaderColor, channelsColor);
 		var recentPMsCount = 0
-		var recentChannels = "---[Teams]---\n"
+		var recentChannels = fmt.Sprintf("%s---[Teams]---%s\n", channelsHeaderColor, channelsColor);
 		var recentChannelsCount = 0
 		for _, s := range testVar.Result.Conversations {
 			channels = append(channels, s.Channel)
@@ -183,22 +188,22 @@ func populateList() {
 				recentChannelsCount++
 				if recentChannelsCount <= ((maxY - 2) / 3) {
 					if s.Unread {
-						recentChannels += "*"
+						recentChannels += fmt.Sprintf("%s*",color(0))
 					}
-					recentChannels += fmt.Sprintf("%s\n\t#%s\n", s.Channel.Name, s.Channel.TopicName)
+					recentChannels += fmt.Sprintf("%s\n\t#%s\n%s", s.Channel.Name, s.Channel.TopicName, channelsColor)
 				}
 			} else {
 				recentPMsCount++
 				if recentPMsCount <= ((maxY - 2) / 3) {
 					if s.Unread {
-						recentPMs += "*"
+						recentChannels += fmt.Sprintf("%s*",color(0))
 					}
-					recentPMs += fmt.Sprintf("%s\n", cleanChannelName(s.Channel.Name))
+					recentPMs += fmt.Sprintf("%s\n%s", cleanChannelName(s.Channel.Name), channelsColor)
 				}
 			}
 		}
 		time.Sleep(1 * time.Millisecond)
-		printToView("List", fmt.Sprintf("%s%s", recentPMs, recentChannels))
+		printToView("List", fmt.Sprintf("%s%s%s%s", channelsColor, recentPMs, recentChannels, noColor))
 	}
 }
 
@@ -385,7 +390,7 @@ func layout(g *gocui.Gui) error {
 		}
 		inputView.Editable = true
 		inputView.Wrap = true
-		inputView.Title = " Not in a chat /j to join"
+		inputView.Title = fmt.Sprintf(" Not in a chat - write `%sj` to join", cmdPrefix)
 		g.Cursor = true
 	}
 	if listView, err4 := g.SetView("List", 0, 0, maxX/2-maxX/3-1, maxY-1, 0); err4 != nil {
