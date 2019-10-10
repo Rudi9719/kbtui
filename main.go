@@ -292,6 +292,10 @@ func handleTab() error {
         // if you successfully get an input string, grab the last word from the string
         ss := strings.Split(inputString, " ")
         s := ss[len(ss)-1]
+        // now in case the word (s) is a mention @something, lets remove it to normalize
+        if strings.HasPrefix(s, "@") {
+            s = strings.Replace(s, "@", "", 1)
+        }
         // now call get the list of all possible cantidates that have that as a prefix
         resultSlice := generateTabCompletionSlice(s)
         lcp := longestCommonPrefix(resultSlice)
