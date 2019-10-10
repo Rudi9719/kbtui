@@ -301,8 +301,12 @@ func layout2(g *gocui.Gui) error {
 }
 
 func getInputString(viewName string) (string, error) {
-	inputView, _ := g.View(viewName)
-	return inputView.Line(0)
+	inputView, err := g.View(viewName)
+	if err != nil {
+		return "", err
+	}
+	retString := strings.Join(inputView.BufferLines(), " ")
+	return retString, err
 }
 
 func initKeybindings() error {
