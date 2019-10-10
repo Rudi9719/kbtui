@@ -3,8 +3,86 @@
 package main
 
 import (
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"net/http"
+	"os"
+
 	"github.com/magefile/mage/sh"
+    "github.com/magefile/mage/mg"
 )
+
+// emoji related constants
+const emojiList = "https://raw.githubusercontent.com/CodeFreezr/emojo/master/db/v5/emoji-v5.json"
+const emojiFileName = "emojiList.go"
+
+// json parsing structure
+type emoji struct {
+	Num         int    `json:"No"`
+	Emoji       string `json:"Emoji"`
+	Category    string `json:"Category"`
+	SubCategory string `json:"SubCategory"`
+	Unicode     string `json:"Unicode"`
+	Name        string `json:"Name"`
+	Tags        string `json:"Tags"`
+	Shortcode   string `json:"Shortcode"`
+}
+
+// This func downloaded and parses the emojis from online into a slice of all shortnames
+// to be used as a lookup for tab completion for emojis
+// this way the pull from GitHub only has to be done at build time.
+func createEmojiSlice() ([]string, error) {
+	result, err := http.Get(emojiList)
+	if err != nil {
+		return nil, err
+	}
+	defer result.Body.Close()
+
+	emojiList, err := ioutil.ReadAll(result.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var emojis []emoji
+	if err := json.Unmarshal(emojiList, &emojis); err != nil {
+		return nil, err
+	}
+
+	var emojiSlice []string
+
+	for _, emj := range emojis {
+		if len(emj.Shortcode) == 0 {
+			continue
+		}
+		emojiSlice = append(emojiSlice, emj.Shortcode)
+	}
+	return emojiSlice, nil
+}
+
+// Build kbtui with emoji lookup support
+func BuildEmoji() {
+	emojis, err := createEmojiSlice()
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+	f, err := os.Create(emojiFileName)
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+	defer f.Close()
+
+	fileContent := fmt.Sprintf("package main\n\nvar emojiSlice = %#v", emojis)
+	_, err = f.WriteString(fileContent)
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+	f.Sync()
+    //sh.Run("go", "build", "-tags", "allcommands,showreeactionscmd,emoji")
+}
 
 // Build kbtui with just the basic commands.
 func Build() {
@@ -38,5 +116,7 @@ func BuildAllCommandsT() {
 
 // Build kbtui with beta functionality
 func BuildBeta() {
-	sh.Run("go", "build", "-tags", "allcommands,showreactionscmd")
+    mg.Deps(BuildEmoji)
+	sh.Run("go", "build", "-tags", "allcommands,showreactionscmd,emojiList")
 }
+
