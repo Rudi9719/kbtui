@@ -20,5 +20,11 @@ func init() {
 }
 
 func tcmdShowReactions(m keybase.ChatAPI) {
-	printToView("Feed", fmt.Sprintf("%s reacted to %d with %s", m.Msg.Sender.Username, m.Msg.Content.Reaction.M, m.Msg.Content.Reaction.B))
+	where := ""
+	if m.Msg.Channel.MembersType == keybase.TEAM {
+		where = fmt.Sprintf("in @%s#%s", m.Msg.Channel.Name, m.Msg.Channel.TopicName)
+	} else {
+		where = fmt.Sprintf("in a PM")
+	}
+	printToView("Feed", fmt.Sprintf("%s reacted to %d with %s %s", m.Msg.Sender.Username, m.Msg.Content.Reaction.M, m.Msg.Content.Reaction.B, where))
 }
