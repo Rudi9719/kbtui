@@ -8,7 +8,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
-
+    "strings"
 	"github.com/magefile/mage/sh"
     "github.com/magefile/mage/mg"
 )
@@ -52,8 +52,9 @@ func createEmojiSlice() ([]string, error) {
 	var emojiSlice []string
 
 	for _, emj := range emojis {
-		if len(emj.Shortcode) == 0 {
-			continue
+		if len(emj.Shortcode) == 0 || strings.Contains(emj.Shortcode, "_tone") {
+			// dont add them
+            continue
 		}
 		emojiSlice = append(emojiSlice, emj.Shortcode)
 	}
@@ -61,27 +62,24 @@ func createEmojiSlice() ([]string, error) {
 }
 
 // Build kbtui with emoji lookup support
-func BuildEmoji() {
+func BuildEmoji() error {
 	emojis, err := createEmojiSlice()
 	if err != nil {
-		fmt.Println(err.Error())
-		return
+		return err
 	}
 	f, err := os.Create(emojiFileName)
 	if err != nil {
-		fmt.Println(err.Error())
-		return
+		return err
 	}
 	defer f.Close()
 
 	fileContent := fmt.Sprintf("package main\n\nvar emojiSlice = %#v", emojis)
 	_, err = f.WriteString(fileContent)
 	if err != nil {
-		fmt.Println(err.Error())
-		return
+		return err
 	}
 	f.Sync()
-    //sh.Run("go", "build", "-tags", "allcommands,showreeactionscmd,emoji")
+    return nil
 }
 
 // Build kbtui with just the basic commands.
