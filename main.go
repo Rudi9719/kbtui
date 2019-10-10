@@ -265,7 +265,7 @@ func stringRemainder(aStr, bStr string) string {
     return long[i:]
 }
 
-func generateTabCompletionSlice(inputWord string) []string {
+func generateChannelTabCompletionSlice(inputWord string) []string {
     // create a slice to hold the values
     var firstSlice []string
     // iterate over all the conversation results
@@ -284,6 +284,12 @@ func generateTabCompletionSlice(inputWord string) []string {
     return resultSlice
 }
 
+func generateEmojiTabCompletionSlice(inputWord string) []string {
+    // use the emojiSlice from emojiList.go and filter it for the input word
+    resultSlice := filterStringSlice(emojiSlice, inputWord)
+    return resultSlice
+}
+
 func handleTab() error {
     inputString, err := getInputString("Input")
     if err != nil {
@@ -292,14 +298,22 @@ func handleTab() error {
         // if you successfully get an input string, grab the last word from the string
         ss := strings.Split(inputString, " ")
         s := ss[len(ss)-1]
-        // now in case the word (s) is a mention @something, lets remove it to normalize
-        if strings.HasPrefix(s, "@") {
-            s = strings.Replace(s, "@", "", 1)
+        // create a variable in which to store the result
+        var resultSlice []string
+        // if the word starts with a : its an emoji lookup
+        if strings.HasPrefix(s, ":") {
+            resultSlice = generateEmojiTabCompletionSlice(s)
+        } else {
+            // now in case the word (s) is a mention @something, lets remove it to normalize
+            if strings.HasPrefix(s, "@") {
+                s = strings.Replace(s, "@", "", 1)
+            }
+            // now call get the list of all possible cantidates that have that as a prefix
+            resultSlice = generateChannelTabCompletionSlice(s)
         }
-        // now call get the list of all possible cantidates that have that as a prefix
-        resultSlice := generateTabCompletionSlice(s)
         lcp := longestCommonPrefix(resultSlice)
         if lcp != "" {
+            printToView("Feed", fmt.Sprintf("%d tab completion options", len(resultSlice)))
             remainder := stringRemainder(s, lcp)
             writeToView("Input", remainder)
         }
