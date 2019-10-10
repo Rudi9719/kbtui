@@ -1,5 +1,4 @@
-// +ignore
-// +build allcommands replycmd
+// +build !rm_basic_commands allcommands replycmd
 
 package main
 
