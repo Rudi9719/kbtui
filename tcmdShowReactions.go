@@ -35,7 +35,7 @@ func tcmdShowReactions(m keybase.ChatAPI) {
 				clearView("Chat")
 				go populateChat()
 			}
-			
+
 		} else {
 			clearView("Chat")
 			go populateChat()
