@@ -404,7 +404,7 @@ func getInputString(viewName string) (string, error) {
 		return "", err
 	}
 	retString := inputView.Buffer()
-	retString = strings.ReplaceAll(retString, "\n", "")
+	retString = strings.Replace(retString, "\n", "", 800)
 	return retString, err
 }
 
