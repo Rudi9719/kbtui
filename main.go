@@ -411,34 +411,14 @@ func layout(g *gocui.Gui) error {
 	}
 	return nil
 }
-func layout2(g *gocui.Gui) error {
-	maxX, maxY := g.Size()
-	if feedView, err := g.SetView("Feed2", maxX/2-maxX/3, 0, maxX-1, maxY/5, 0); err != nil {
-		if !gocui.IsUnknownView(err) {
-			return err
-		}
-		feedView.Autoscroll = true
-		feedView.Wrap = true
-		fmt.Fprintln(feedView, "Feed Window - If you are mentioned or receive a PM it will show here")
-	}
-	if chatView, err2 := g.SetView("Chat2", maxX/2-maxX/3, maxY/5+1, maxX-1, maxY-5, 0); err2 != nil {
-		if !gocui.IsUnknownView(err2) {
-			return err2
-		}
-		chatView.Autoscroll = true
-		chatView.Wrap = true
-		fmt.Fprintf(chatView, "Welcome %s!\n\nYour chats will appear here.\nSupported commands are as follows:\n\n", k.Username)
-		RunCommand("help")
-	}
-	return nil
-}
 
 func getInputString(viewName string) (string, error) {
 	inputView, err := g.View(viewName)
 	if err != nil {
 		return "", err
 	}
-	retString := strings.Join(inputView.BufferLines(), " ")
+	retString := inputView.Buffer()
+	retString = strings.ReplaceAll(retString, "\n", "")
 	return retString, err
 }
 
