@@ -399,7 +399,8 @@ func getInputString(viewName string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	retString := strings.Join(inputView.BufferLines(), " ")
+	retString := inputView.Buffer()
+	retString = strings.ReplaceAll(retString, "\n", "")
 	return retString, err
 }
 
