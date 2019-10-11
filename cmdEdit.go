@@ -34,6 +34,10 @@ func cmdEdit(cmd []string) {
 			printToView("Feed", fmt.Sprintf("%+v", origMessage))
 			return
 		}
+		if origMessage.Result.Messages[0].Msg.Sender.Username != k.Username {
+			printToView("Feed", "You cannot edit another user's messages.")
+			return
+		}
 		editString := origMessage.Result.Messages[0].Msg.Content.Text.Body
 		clearView("Edit")
 		popupView("Edit")
