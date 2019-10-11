@@ -5,12 +5,12 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/magefile/mage/mg"
+	"github.com/magefile/mage/sh"
 	"io/ioutil"
 	"net/http"
 	"os"
-    "strings"
-	"github.com/magefile/mage/sh"
-    "github.com/magefile/mage/mg"
+	"strings"
 )
 
 // emoji related constants
@@ -54,7 +54,7 @@ func createEmojiSlice() ([]string, error) {
 	for _, emj := range emojis {
 		if len(emj.Shortcode) == 0 || strings.Contains(emj.Shortcode, "_tone") {
 			// dont add them
-            continue
+			continue
 		}
 		emojiSlice = append(emojiSlice, emj.Shortcode)
 	}
@@ -79,7 +79,7 @@ func BuildEmoji() error {
 		return err
 	}
 	f.Sync()
-    return nil
+	return nil
 }
 
 // Build kbtui with just the basic commands.
@@ -114,7 +114,6 @@ func BuildAllCommandsT() {
 
 // Build kbtui with beta functionality
 func BuildBeta() {
-    mg.Deps(BuildEmoji)
+	mg.Deps(BuildEmoji)
 	sh.Run("go", "build", "-tags", "allcommands,showreactionscmd,emojiList")
 }
-
