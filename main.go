@@ -350,7 +350,7 @@ func handleTab() error {
 				} else if rLen <= 5 {
 					newViewTitle = fmt.Sprintf("%s|| %s", originalViewTitle, strings.Join(resultSlice, " "))
 				} else if rLen > 5 {
-					newViewTitle = fmt.Sprintf("%s|| %s +%d more", originalViewTitle, strings.Join(resultSlice[:6], " "), rLen - 5)
+					newViewTitle = fmt.Sprintf("%s|| %s +%d more", originalViewTitle, strings.Join(resultSlice[:6], " "), rLen-5)
 				}
 				viewTitle("Input", newViewTitle)
 				remainder := stringRemainder(s, lcp)
