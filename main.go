@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"regexp"
 	"strings"
 	"time"
 
@@ -295,7 +296,7 @@ func handleTab() error {
 		return err
 	} else {
 		// if you successfully get an input string, grab the last word from the string
-		ss := strings.Split(inputString, " ")
+		ss := regexp.MustCompile(`[ #]`).Split(inputString, -1)
 		s := ss[len(ss)-1]
 		// now in case the word (s) is a mention @something, lets remove it to normalize
 		if strings.HasPrefix(s, "@") {
@@ -535,6 +536,17 @@ func handleMessage(api keybase.ChatAPI) {
 	}
 }
 
+// It seems that golang doesn't have filter and other high order functions :'(
+func delete_empty(s []string) []string {
+	var r []string
+	for _, str := range s {
+		if str != "" {
+			r = append(r, str)
+		}
+	}
+	return r
+}
+
 func handleInput(viewName string) error {
 	clearView(viewName)
 	inputString, _ := getInputString(viewName)
@@ -542,7 +554,7 @@ func handleInput(viewName string) error {
 		return nil
 	}
 	if strings.HasPrefix(inputString, cmdPrefix) {
-		cmd := strings.Split(inputString[len(cmdPrefix):], " ")
+		cmd := delete_empty(strings.Split(inputString[len(cmdPrefix):], " "))
 		if c, ok := commands[cmd[0]]; ok {
 			c.Exec(cmd)
 			return nil
