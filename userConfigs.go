@@ -1,4 +1,5 @@
 package main
+
 // Path where Downloaded files will default to
 var downloadPath = "/tmp/"
 

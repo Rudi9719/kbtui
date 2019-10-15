@@ -2,10 +2,10 @@ package main
 
 import (
 	"fmt"
-    "regexp"
+	"regexp"
 )
 
-// TODO maybe datastructure 
+// TODO maybe datastructure
 // BASH-like PS1 variable equivalent (without colours)
 // TODO bold? cursive etc?
 func color(c int) string {
@@ -18,6 +18,7 @@ func color(c int) string {
 		return fmt.Sprintf("\033[0;%dm", 29+c)
 	}
 }
+
 // TODO maybe make the text into some datastructure which remembers the color
 func colorText(text string, color string, offColor string) string {
 	return fmt.Sprintf("%s%s%s", color, text, offColor)

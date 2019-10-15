@@ -143,8 +143,8 @@ func sendChat(message string) {
 func formatOutput(api keybase.ChatAPI) string {
 	ret := ""
 	msgType := api.Msg.Content.Type
-	switch (msgType) {
-		case "text", "attachment":
+	switch msgType {
+	case "text", "attachment":
 		var c = messageHeaderColor
 		ret = colorText(outputFormat, c, noColor)
 		tm := time.Unix(int64(api.Msg.SentAt), 0)
@@ -153,7 +153,7 @@ func formatOutput(api keybase.ChatAPI) string {
 		msg = colorRegex(msg, `(@\w*(\.\w+)*)`, messageLinkColor, messageBodyColor)
 		// mention URL
 		msg = colorRegex(msg, `(https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*))`, messageLinkColor, messageBodyColor)
-		msg = colorText(colorReplaceMentionMe(msg, messageBodyColor), messageBodyColor,c)
+		msg = colorText(colorReplaceMentionMe(msg, messageBodyColor), messageBodyColor, c)
 		if msgType == "attachment" {
 			msg = fmt.Sprintf("%s\n%s", msg, colorText("[Attachment]", messageAttachmentColor, c))
 		}
@@ -180,9 +180,9 @@ func populateList() {
 	} else {
 
 		clearView("List")
-		var recentPMs = fmt.Sprintf("%s---[PMs]---%s\n", channelsHeaderColor, channelsColor);
+		var recentPMs = fmt.Sprintf("%s---[PMs]---%s\n", channelsHeaderColor, channelsColor)
 		var recentPMsCount = 0
-		var recentChannels = fmt.Sprintf("%s---[Teams]---%s\n", channelsHeaderColor, channelsColor);
+		var recentChannels = fmt.Sprintf("%s---[Teams]---%s\n", channelsHeaderColor, channelsColor)
 		var recentChannelsCount = 0
 		for _, s := range testVar.Result.Conversations {
 			channels = append(channels, s.Channel)
@@ -190,7 +190,7 @@ func populateList() {
 				recentChannelsCount++
 				if recentChannelsCount <= ((maxY - 2) / 3) {
 					if s.Unread {
-						recentChannels += fmt.Sprintf("%s*",color(0))
+						recentChannels += fmt.Sprintf("%s*", color(0))
 					}
 					recentChannels += fmt.Sprintf("%s\n\t#%s\n%s", s.Channel.Name, s.Channel.TopicName, channelsColor)
 				}
@@ -198,7 +198,7 @@ func populateList() {
 				recentPMsCount++
 				if recentPMsCount <= ((maxY - 2) / 3) {
 					if s.Unread {
-						recentChannels += fmt.Sprintf("%s*",color(0))
+						recentChannels += fmt.Sprintf("%s*", color(0))
 					}
 					recentPMs += fmt.Sprintf("%s\n%s", cleanChannelName(s.Channel.Name), channelsColor)
 				}
