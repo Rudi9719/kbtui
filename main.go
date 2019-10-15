@@ -62,6 +62,12 @@ func viewTitle(viewName string, title string) {
 		return nil
 	})
 }
+
+func getViewTitle(viewName string) string {
+	view, _ := g.View(viewName)
+	return view.Title
+}
+
 func popupView(viewName string) {
 	_, err := g.SetCurrentView(viewName)
 	if err != nil {
@@ -265,6 +271,15 @@ func stringRemainder(aStr, bStr string) string {
 	return long[i:]
 }
 
+func appendIfNotInSlice(ss []string, s string) []string {
+	for _, element := range ss {
+		if element == s {
+			return ss
+		}
+	}
+	return append(ss, s)
+}
+
 func generateChannelTabCompletionSlice(inputWord string) []string {
 	// create a slice to hold the values
 	var firstSlice []string
@@ -272,11 +287,11 @@ func generateChannelTabCompletionSlice(inputWord string) []string {
 	for _, s := range channels {
 		if s.MembersType == keybase.TEAM {
 			// its a team so add the topic name as a possible tab completion
-			firstSlice = append(firstSlice, s.TopicName)
-			firstSlice = append(firstSlice, s.Name)
+			firstSlice = appendIfNotInSlice(firstSlice, s.TopicName)
+			firstSlice = appendIfNotInSlice(firstSlice, s.Name)
 		} else {
 			// its a user, so clean the name and append the users name as a possible tab completion
-			firstSlice = append(firstSlice, cleanChannelName(s.Name))
+			firstSlice = appendIfNotInSlice(firstSlice, cleanChannelName(s.Name))
 		}
 	}
 	// now return the resultSlice which contains all that are prefixed with inputWord
@@ -311,11 +326,23 @@ func handleTab() error {
 			// now call get the list of all possible cantidates that have that as a prefix
 			resultSlice = generateChannelTabCompletionSlice(s)
 		}
+		rLen := len(resultSlice)
 		lcp := longestCommonPrefix(resultSlice)
 		if lcp != "" {
-			printToView("Feed", fmt.Sprintf("%d tab completion options", len(resultSlice)))
-			remainder := stringRemainder(s, lcp)
-			writeToView("Input", remainder)
+			originalViewTitle := strings.Split(getViewTitle("Input"), "||")[0]
+			newViewTitle := ""
+			if rLen >= 1 {
+				if rLen == 1 {
+					newViewTitle = originalViewTitle
+				} else if rLen <= 5 {
+					newViewTitle = fmt.Sprintf("%s|| %s", originalViewTitle, strings.Join(resultSlice, " "))
+				} else if rLen > 5 {
+					newViewTitle = fmt.Sprintf("%s|| %s +%d more", originalViewTitle, strings.Join(resultSlice[:6], " "), rLen - 5)
+				}
+				viewTitle("Input", newViewTitle)
+				remainder := stringRemainder(s, lcp)
+				writeToView("Input", remainder)
+			}
 		}
 	}
 	return nil
