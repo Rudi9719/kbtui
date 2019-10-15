@@ -4,8 +4,8 @@ package main
 
 import (
 	"fmt"
-
 	"samhofi.us/x/keybase"
+	"strings"
 )
 
 func init() {
@@ -21,23 +21,31 @@ func init() {
 
 func cmdJoin(cmd []string) {
 	stream = false
-	if len(cmd) == 3 {
-		channel.MembersType = keybase.TEAM
-		channel.Name = cmd[1]
-		channel.TopicName = cmd[2]
-		printToView("Feed", fmt.Sprintf("You are joining: @%s#%s", channel.Name, channel.TopicName))
+	switch l := len(cmd); l {
+	case 3:
+		fallthrough
+	case 2:
+		// if people write it in one singular line, with a `#`
+		firstArgSplit := strings.Split(cmd[1], "#")
+		channel.Name = strings.Replace(firstArgSplit[0], "@", "", 1)
+		joinedName := fmt.Sprintf("@%s", channel.Name)
+		if l == 3 || len(firstArgSplit) == 2 {
+			channel.MembersType = keybase.TEAM
+			if l == 3 {
+				channel.TopicName = strings.Replace(cmd[2], "#", "", 1)
+			} else {
+				channel.TopicName = firstArgSplit[1]
+			}
+			joinedName = fmt.Sprintf("%s#%s", joinedName, channel.TopicName)
+		} else {
+			channel.TopicName = ""
+			channel.MembersType = keybase.USER
+		}
+		printToView("Feed", fmt.Sprintf("You are joining: %s", joinedName))
 		clearView("Chat")
-		viewTitle("Input", fmt.Sprintf(" @%s#%s ", channel.Name, channel.TopicName))
+		viewTitle("Input", fmt.Sprintf(" %s ", joinedName))
 		go populateChat()
-	} else if len(cmd) == 2 {
-		channel.MembersType = keybase.USER
-		channel.Name = cmd[1]
-		channel.TopicName = ""
-		printToView("Feed", fmt.Sprintf("You are joining: @%s", channel.Name))
-		clearView("Chat")
-		viewTitle("Input", fmt.Sprintf(" @%s ", channel.Name))
-		go populateChat()
-	} else {
+	default:
 		printToView("Feed", fmt.Sprintf("To join a team use %sjoin <team> <channel>", cmdPrefix))
 		printToView("Feed", fmt.Sprintf("To join a PM use %sjoin <user>", cmdPrefix))
 	}
