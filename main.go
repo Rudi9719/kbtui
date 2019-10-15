@@ -65,8 +65,14 @@ func viewTitle(viewName string, title string) {
 }
 
 func getViewTitle(viewName string) string {
-	view, _ := g.View(viewName)
-	return view.Title
+	view, err := g.View(viewName)
+	if err != nil {
+		// in case there is active tab completion, filter that to just the view title and not the completion options.
+		writeToView("Feed", fmt.Sprintf("Error getting view title: %s", err))
+		return ""
+	} else {
+		return strings.Split(view.Title, "||")[0]
+	}
 }
 
 func popupView(viewName string) {
@@ -336,9 +342,9 @@ func handleTab() error {
 		rLen := len(resultSlice)
 		lcp := longestCommonPrefix(resultSlice)
 		if lcp != "" {
-			originalViewTitle := strings.Split(getViewTitle("Input"), "||")[0]
+			originalViewTitle := getViewTitle("Input")
 			newViewTitle := ""
-			if rLen >= 1 {
+			if rLen >= 1 && originalViewTitle != "" {
 				if rLen == 1 {
 					newViewTitle = originalViewTitle
 				} else if rLen <= 5 {
@@ -612,6 +618,10 @@ func handleInput(viewName string) error {
 		RunCommand(cmd...)
 	} else {
 		go sendChat(inputString)
+	}
+	// restore any tab completion view titles on input commit
+	if newViewTitle := getViewTitle(viewName); newViewTitle != "" {
+		viewTitle(viewName, newViewTitle)
 	}
 
 	go populateList()
