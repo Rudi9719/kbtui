@@ -16,7 +16,8 @@ func init() {
 func cmdStream(cmd []string) {
 	stream = true
 	channel.Name = ""
+
 	printToView("Feed", "You are now viewing the formatted stream")
-	viewTitle("Input", " Not in a chat /j to join ")
+	viewTitle("Input", " Stream - Not in a chat /j to join ")
 	clearView("Chat")
 }
