@@ -632,6 +632,9 @@ func handleInput(viewName string) error {
 	}
 	if strings.HasPrefix(inputString, cmdPrefix) {
 		cmd := delete_empty(strings.Split(inputString[len(cmdPrefix):], " "))
+		if len(cmd) < 1 {
+			return nil
+		}
 		if c, ok := commands[cmd[0]]; ok {
 			c.Exec(cmd)
 			return nil
