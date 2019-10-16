@@ -226,7 +226,7 @@ func getCurrentChannelMembership() []string {
 	if channel.Name != "" {
 		t := k.NewTeam(channel.Name)
 		if testVar, err := t.MemberList(); err != nil {
-			printToView("Feed", fmt.Sprintf("Error getting member list - %+v", err))
+			return rs // then this isn't a team, its a PM or there was an error in the API call
 		} else {
 			for _, m := range testVar.Result.Members.Owners {
 				rs = append(rs, fmt.Sprintf("%+v", m.Username))
