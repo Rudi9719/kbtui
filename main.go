@@ -221,6 +221,30 @@ func populateList() {
 	}
 }
 
+func getCurrentChannelMembership() []string {
+	var rs []string
+	if channel.Name != "" {
+		t := k.NewTeam(channel.Name)
+		if testVar, err := t.MemberList(); err != nil {
+			printToView("Feed", fmt.Sprintf("Error getting member list - %+v", err))
+		} else {
+			for _, m := range testVar.Result.Members.Owners {
+				rs = append(rs, fmt.Sprintf("%+v", m.Username))
+			}
+			for _, m := range testVar.Result.Members.Admins {
+				rs = append(rs, fmt.Sprintf("%+v", m.Username))
+			}
+			for _, m := range testVar.Result.Members.Writers {
+				rs = append(rs, fmt.Sprintf("%+v", m.Username))
+			}
+			for _, m := range testVar.Result.Members.Readers {
+				rs = append(rs, fmt.Sprintf("%+v", m.Username))
+			}
+		}
+	}
+	return rs
+}
+
 func filterStringSlice(ss []string, fv string) []string {
 	var rs []string
 	for _, s := range ss {
@@ -306,6 +330,11 @@ func generateChannelTabCompletionSlice(inputWord string) []string {
 			// its a user, so clean the name and append the users name as a possible tab completion
 			firstSlice = appendIfNotInSlice(firstSlice, cleanChannelName(s.Name))
 		}
+	}
+	// next fetch all members of the current channel and add them to the slice
+	secondSlice := getCurrentChannelMembership()
+	for _, m := range secondSlice {
+		firstSlice = appendIfNotInSlice(firstSlice, m)
 	}
 	// now return the resultSlice which contains all that are prefixed with inputWord
 	resultSlice := filterStringSlice(firstSlice, inputWord)
