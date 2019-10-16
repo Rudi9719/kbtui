@@ -43,7 +43,7 @@ func cmdJoin(cmd []string) {
 		}
 		printToView("Feed", fmt.Sprintf("You are joining: %s", joinedName))
 		clearView("Chat")
-		viewTitle("Input", fmt.Sprintf(" %s ", joinedName))
+		setViewTitle("Input", fmt.Sprintf(" %s ", joinedName))
 		go populateChat()
 	default:
 		printToView("Feed", fmt.Sprintf("To join a team use %sjoin <team> <channel>", cmdPrefix))

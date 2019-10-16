@@ -42,7 +42,7 @@ func cmdEdit(cmd []string) {
 		clearView("Edit")
 		popupView("Edit")
 		printToView("Edit", fmt.Sprintf("/e %d %s", messageId, editString))
-		viewTitle("Edit", fmt.Sprintf(" Editing message %d ", messageId))
+		setViewTitle("Edit", fmt.Sprintf(" Editing message %d ", messageId))
 		return
 	}
 	if len(cmd) < 3 {

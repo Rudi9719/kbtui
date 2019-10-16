@@ -52,7 +52,7 @@ func main() {
 	}
 }
 
-func viewTitle(viewName string, title string) {
+func setViewTitle(viewName string, title string) {
 	g.Update(func(g *gocui.Gui) error {
 		updatingView, err := g.View(viewName)
 		if err != nil {
@@ -381,7 +381,7 @@ func handleTab() error {
 				} else if rLen > 5 {
 					newViewTitle = fmt.Sprintf("%s|| %s +%d more", originalViewTitle, strings.Join(resultSlice[:6], " "), rLen-5)
 				}
-				viewTitle("Input", newViewTitle)
+				setViewTitle("Input", newViewTitle)
 				remainder := stringRemainder(s, lcp)
 				writeToView("Input", remainder)
 			}
@@ -650,7 +650,7 @@ func handleInput(viewName string) error {
 	}
 	// restore any tab completion view titles on input commit
 	if newViewTitle := getViewTitle(viewName); newViewTitle != "" {
-		viewTitle(viewName, newViewTitle)
+		setViewTitle(viewName, newViewTitle)
 	}
 
 	go populateList()
