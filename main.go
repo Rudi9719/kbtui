@@ -12,17 +12,19 @@ import (
 	"samhofi.us/x/keybase"
 )
 
-var typeCommands = make(map[string]TypeCommand)
-var commands = make(map[string]Command)
-var baseCommands = make([]string, 0)
+var (
+	typeCommands = make(map[string]TypeCommand)
+	commands     = make(map[string]Command)
+	baseCommands = make([]string, 0)
 
-var dev = false
-var k = keybase.NewKeybase()
-var channel keybase.Channel
-var channels []keybase.Channel
-var stream = false
-var lastMessage keybase.ChatAPI
-var g *gocui.Gui
+	dev         = false
+	k           = keybase.NewKeybase()
+	channel     keybase.Channel
+	channels    []keybase.Channel
+	stream      = false
+	lastMessage keybase.ChatAPI
+	g           *gocui.Gui
+)
 
 func main() {
 	if !k.LoggedIn {
@@ -52,385 +54,7 @@ func main() {
 	}
 }
 
-func setViewTitle(viewName string, title string) {
-	g.Update(func(g *gocui.Gui) error {
-		updatingView, err := g.View(viewName)
-		if err != nil {
-			return err
-		} else {
-			updatingView.Title = title
-		}
-		return nil
-	})
-}
-
-func getViewTitle(viewName string) string {
-	view, err := g.View(viewName)
-	if err != nil {
-		// in case there is active tab completion, filter that to just the view title and not the completion options.
-		writeToView("Feed", fmt.Sprintf("Error getting view title: %s", err))
-		return ""
-	} else {
-		return strings.Split(view.Title, "||")[0]
-	}
-}
-
-func popupView(viewName string) {
-	_, err := g.SetCurrentView(viewName)
-	if err != nil {
-		printToView("Feed", fmt.Sprintf("%+v", err))
-	}
-	_, err = g.SetViewOnTop(viewName)
-	if err != nil {
-		printToView("Feed", fmt.Sprintf("%+v", err))
-	}
-	g.Update(func(g *gocui.Gui) error {
-		updatingView, err := g.View(viewName)
-		if err != nil {
-			return err
-		} else {
-			viewX, viewY := updatingView.Size()
-			updatingView.MoveCursor(viewX, viewY, true)
-		}
-		return nil
-
-	})
-}
-
-func populateChat() {
-	lastMessage.ID = 0
-	chat := k.NewChat(channel)
-	maxX, _ := g.Size()
-	api, err := chat.Read(maxX / 2)
-	if err != nil {
-		for _, testChan := range channels {
-			if channel.Name == testChan.Name {
-				channel = testChan
-				channel.TopicName = "general"
-			}
-		}
-		chat = k.NewChat(channel)
-		_, err2 := chat.Read(2)
-		if err2 != nil {
-			printToView("Feed", fmt.Sprintf("%+v", err))
-			return
-		} else {
-			go populateChat()
-			return
-		}
-	}
-	var printMe []string
-	var actuallyPrintMe string
-	if len(api.Result.Messages) > 0 {
-		lastMessage.ID = api.Result.Messages[0].Msg.ID
-	}
-	for _, message := range api.Result.Messages {
-		if message.Msg.Content.Type == "text" || message.Msg.Content.Type == "attachment" {
-			if lastMessage.ID < 1 {
-				lastMessage.ID = message.Msg.ID
-			}
-			var apiCast keybase.ChatAPI
-			apiCast.Msg = &message.Msg
-			newMessage := formatOutput(apiCast)
-			printMe = append(printMe, newMessage)
-		}
-	}
-	for i := len(printMe) - 1; i >= 0; i-- {
-		actuallyPrintMe += printMe[i]
-		if i > 0 {
-			actuallyPrintMe += "\n"
-		}
-	}
-	printToView("Chat", actuallyPrintMe)
-
-}
-
-func sendChat(message string) {
-	chat := k.NewChat(channel)
-	_, err := chat.Send(message)
-	if err != nil {
-		printToView("Feed", fmt.Sprintf("There was an error %+v", err))
-	}
-}
-func formatOutput(api keybase.ChatAPI) string {
-	ret := ""
-	msgType := api.Msg.Content.Type
-	switch msgType {
-	case "text", "attachment":
-		var c = messageHeaderColor
-		ret = colorText(outputFormat, c, noColor)
-		tm := time.Unix(int64(api.Msg.SentAt), 0)
-		var msg = api.Msg.Content.Text.Body
-		// mention teams or users
-		msg = colorRegex(msg, `(@\w*(\.\w+)*)`, messageLinkColor, messageBodyColor)
-		// mention URL
-		msg = colorRegex(msg, `(https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*))`, messageLinkColor, messageBodyColor)
-		msg = colorText(colorReplaceMentionMe(msg, messageBodyColor), messageBodyColor, c)
-		if msgType == "attachment" {
-			msg = fmt.Sprintf("%s\n%s", msg, colorText("[Attachment]", messageAttachmentColor, c))
-		}
-
-		user := colorUsername(api.Msg.Sender.Username, c)
-		device := colorText(api.Msg.Sender.DeviceName, messageSenderDeviceColor, c)
-		msgId := colorText(fmt.Sprintf("%d", api.Msg.ID), messageIdColor, c)
-		ts := colorText(fmt.Sprintf("%s", tm.Format(timeFormat)), messageTimeColor, c)
-		ret = strings.Replace(ret, "$MSG", msg, 1)
-		ret = strings.Replace(ret, "$USER", user, 1)
-		ret = strings.Replace(ret, "$DEVICE", device, 1)
-		ret = strings.Replace(ret, "$ID", msgId, 1)
-		ret = strings.Replace(ret, "$TIME", ts, 1)
-		ret = strings.Replace(ret, "$DATE", fmt.Sprintf("%s", tm.Format(dateFormat)), 1)
-		ret = strings.Replace(ret, "```", fmt.Sprintf("\n<code>\n"), -1)
-	}
-	return ret
-}
-
-func populateList() {
-	_, maxY := g.Size()
-	if testVar, err := k.ChatList(); err != nil {
-		log.Printf("%+v", err)
-	} else {
-
-		clearView("List")
-		var recentPMs = fmt.Sprintf("%s---[PMs]---%s\n", channelsHeaderColor, channelsColor)
-		var recentPMsCount = 0
-		var recentChannels = fmt.Sprintf("%s---[Teams]---%s\n", channelsHeaderColor, channelsColor)
-		var recentChannelsCount = 0
-		for _, s := range testVar.Result.Conversations {
-			channels = append(channels, s.Channel)
-			if s.Channel.MembersType == keybase.TEAM {
-				recentChannelsCount++
-				if recentChannelsCount <= ((maxY - 2) / 3) {
-					if s.Unread {
-						recentChannels += fmt.Sprintf("%s*", color(0))
-					}
-					recentChannels += fmt.Sprintf("%s\n\t#%s\n%s", s.Channel.Name, s.Channel.TopicName, channelsColor)
-				}
-			} else {
-				recentPMsCount++
-				if recentPMsCount <= ((maxY - 2) / 3) {
-					if s.Unread {
-						recentChannels += fmt.Sprintf("%s*", color(0))
-					}
-					recentPMs += fmt.Sprintf("%s\n%s", cleanChannelName(s.Channel.Name), channelsColor)
-				}
-			}
-		}
-		time.Sleep(1 * time.Millisecond)
-		printToView("List", fmt.Sprintf("%s%s%s%s", channelsColor, recentPMs, recentChannels, noColor))
-	}
-}
-
-func getCurrentChannelMembership() []string {
-	var rs []string
-	if channel.Name != "" {
-		t := k.NewTeam(channel.Name)
-		if testVar, err := t.MemberList(); err != nil {
-			return rs // then this isn't a team, its a PM or there was an error in the API call
-		} else {
-			for _, m := range testVar.Result.Members.Owners {
-				rs = append(rs, fmt.Sprintf("%+v", m.Username))
-			}
-			for _, m := range testVar.Result.Members.Admins {
-				rs = append(rs, fmt.Sprintf("%+v", m.Username))
-			}
-			for _, m := range testVar.Result.Members.Writers {
-				rs = append(rs, fmt.Sprintf("%+v", m.Username))
-			}
-			for _, m := range testVar.Result.Members.Readers {
-				rs = append(rs, fmt.Sprintf("%+v", m.Username))
-			}
-		}
-	}
-	return rs
-}
-
-func filterStringSlice(ss []string, fv string) []string {
-	var rs []string
-	for _, s := range ss {
-		if strings.HasPrefix(s, fv) {
-			rs = append(rs, s)
-		}
-	}
-	return rs
-}
-
-func longestCommonPrefix(ss []string) string {
-	// cover the case where the slice has no or one members
-	switch len(ss) {
-	case 0:
-		return ""
-	case 1:
-		return ss[0]
-	}
-	// all strings are compared by bytes here forward (TBD unicode normalization?)
-	// establish min, max lenth members of the slice by iterating over the members
-	min, max := ss[0], ss[0]
-	for _, s := range ss[1:] {
-		switch {
-		case s < min:
-			min = s
-		case s > max:
-			max = s
-		}
-	}
-	// then iterate over the characters from min to max, as soon as chars don't match return
-	for i := 0; i < len(min) && i < len(max); i++ {
-		if min[i] != max[i] {
-			return min[:i]
-		}
-	}
-	// to cover the case where all members are equal, just return one
-	return min
-}
-
-func stringRemainder(aStr, bStr string) string {
-	var long, short string
-	//figure out which string is longer
-	switch {
-	case len(aStr) < len(bStr):
-		short = aStr
-		long = bStr
-	default:
-		short = bStr
-		long = aStr
-	}
-	// iterate over the strings using an external iterator so we don't lose the value
-	i := 0
-	for i < len(short) && i < len(long) {
-		if short[i] != long[i] {
-			// the strings aren't equal so don't return anything
-			return ""
-		}
-		i++
-	}
-	// return whatever's left of the longer string
-	return long[i:]
-}
-
-func appendIfNotInSlice(ss []string, s string) []string {
-	for _, element := range ss {
-		if element == s {
-			return ss
-		}
-	}
-	return append(ss, s)
-}
-
-func generateChannelTabCompletionSlice(inputWord string) []string {
-	// create a slice to hold the values
-	var firstSlice []string
-	// iterate over all the conversation results
-	for _, s := range channels {
-		if s.MembersType == keybase.TEAM {
-			// its a team so add the topic name as a possible tab completion
-			firstSlice = appendIfNotInSlice(firstSlice, s.TopicName)
-			firstSlice = appendIfNotInSlice(firstSlice, s.Name)
-		} else {
-			// its a user, so clean the name and append the users name as a possible tab completion
-			firstSlice = appendIfNotInSlice(firstSlice, cleanChannelName(s.Name))
-		}
-	}
-	// next fetch all members of the current channel and add them to the slice
-	secondSlice := getCurrentChannelMembership()
-	for _, m := range secondSlice {
-		firstSlice = appendIfNotInSlice(firstSlice, m)
-	}
-	// now return the resultSlice which contains all that are prefixed with inputWord
-	resultSlice := filterStringSlice(firstSlice, inputWord)
-	return resultSlice
-}
-
-func generateEmojiTabCompletionSlice(inputWord string) []string {
-	// use the emojiSlice from emojiList.go and filter it for the input word
-	resultSlice := filterStringSlice(emojiSlice, inputWord)
-	return resultSlice
-}
-
-func handleTab() error {
-	inputString, err := getInputString("Input")
-	if err != nil {
-		return err
-	} else {
-		// if you successfully get an input string, grab the last word from the string
-		ss := regexp.MustCompile(`[ #]`).Split(inputString, -1)
-		s := ss[len(ss)-1]
-		// create a variable in which to store the result
-		var resultSlice []string
-		// if the word starts with a : its an emoji lookup
-		if strings.HasPrefix(s, ":") {
-			resultSlice = generateEmojiTabCompletionSlice(s)
-		} else {
-			// now in case the word (s) is a mention @something, lets remove it to normalize
-			if strings.HasPrefix(s, "@") {
-				s = strings.Replace(s, "@", "", 1)
-			}
-			// now call get the list of all possible cantidates that have that as a prefix
-			resultSlice = generateChannelTabCompletionSlice(s)
-		}
-		rLen := len(resultSlice)
-		lcp := longestCommonPrefix(resultSlice)
-		if lcp != "" {
-			originalViewTitle := getViewTitle("Input")
-			newViewTitle := ""
-			if rLen >= 1 && originalViewTitle != "" {
-				if rLen == 1 {
-					newViewTitle = originalViewTitle
-				} else if rLen <= 5 {
-					newViewTitle = fmt.Sprintf("%s|| %s", originalViewTitle, strings.Join(resultSlice, " "))
-				} else if rLen > 5 {
-					newViewTitle = fmt.Sprintf("%s|| %s +%d more", originalViewTitle, strings.Join(resultSlice[:6], " "), rLen-5)
-				}
-				setViewTitle("Input", newViewTitle)
-				remainder := stringRemainder(s, lcp)
-				writeToView("Input", remainder)
-			}
-		}
-	}
-	return nil
-}
-
-func clearView(viewName string) {
-	g.Update(func(g *gocui.Gui) error {
-		inputView, err := g.View(viewName)
-		if err != nil {
-			return err
-		} else {
-			inputView.Clear()
-			inputView.SetCursor(0, 0)
-			inputView.SetOrigin(0, 0)
-		}
-		return nil
-	})
-
-}
-
-func writeToView(viewName string, message string) {
-	g.Update(func(g *gocui.Gui) error {
-		updatingView, err := g.View(viewName)
-		if err != nil {
-			return err
-		} else {
-			for _, c := range message {
-				updatingView.EditWrite(c)
-			}
-		}
-		return nil
-	})
-}
-
-func printToView(viewName string, message string) {
-	g.Update(func(g *gocui.Gui) error {
-		updatingView, err := g.View(viewName)
-		if err != nil {
-			return err
-		} else {
-			fmt.Fprintf(updatingView, "%s\n", message)
-		}
-		return nil
-	})
-}
-
+// Gocui basic setup
 func layout(g *gocui.Gui) error {
 	maxX, maxY := g.Size()
 	if editView, err := g.SetView("Edit", maxX/2-maxX/3+1, maxY/2, maxX-2, maxY/2+10, 0); err != nil {
@@ -480,17 +104,6 @@ func layout(g *gocui.Gui) error {
 	}
 	return nil
 }
-
-func getInputString(viewName string) (string, error) {
-	inputView, err := g.View(viewName)
-	if err != nil {
-		return "", err
-	}
-	retString := inputView.Buffer()
-	retString = strings.Replace(retString, "\n", "", 800)
-	return retString, err
-}
-
 func initKeybindings() error {
 	if err := g.SetKeybinding("", gocui.KeyCtrlC, gocui.ModNone,
 		func(g *gocui.Gui, v *gocui.View) error {
@@ -531,6 +144,93 @@ func initKeybindings() error {
 	return nil
 }
 
+// End gocui basic setup
+
+// Gocui helper funcs
+func setViewTitle(viewName string, title string) {
+	g.Update(func(g *gocui.Gui) error {
+		updatingView, err := g.View(viewName)
+		if err != nil {
+			return err
+		} else {
+			updatingView.Title = title
+		}
+		return nil
+	})
+}
+func getViewTitle(viewName string) string {
+	view, err := g.View(viewName)
+	if err != nil {
+		// in case there is active tab completion, filter that to just the view title and not the completion options.
+		writeToView("Feed", fmt.Sprintf("Error getting view title: %s", err))
+		return ""
+	} else {
+		return strings.Split(view.Title, "||")[0]
+	}
+}
+func popupView(viewName string) {
+	_, err := g.SetCurrentView(viewName)
+	if err != nil {
+		printToView("Feed", fmt.Sprintf("%+v", err))
+	}
+	_, err = g.SetViewOnTop(viewName)
+	if err != nil {
+		printToView("Feed", fmt.Sprintf("%+v", err))
+	}
+	g.Update(func(g *gocui.Gui) error {
+		updatingView, err := g.View(viewName)
+		if err != nil {
+			return err
+		} else {
+			viewX, viewY := updatingView.Size()
+			updatingView.MoveCursor(viewX, viewY, true)
+		}
+		return nil
+
+	})
+}
+func clearView(viewName string) {
+	g.Update(func(g *gocui.Gui) error {
+		inputView, err := g.View(viewName)
+		if err != nil {
+			return err
+		} else {
+			inputView.Clear()
+			inputView.SetCursor(0, 0)
+			inputView.SetOrigin(0, 0)
+		}
+		return nil
+	})
+
+}
+func writeToView(viewName string, message string) {
+	g.Update(func(g *gocui.Gui) error {
+		updatingView, err := g.View(viewName)
+		if err != nil {
+			return err
+		} else {
+			for _, c := range message {
+				updatingView.EditWrite(c)
+			}
+		}
+		return nil
+	})
+}
+func printToView(viewName string, message string) {
+	g.Update(func(g *gocui.Gui) error {
+		updatingView, err := g.View(viewName)
+		if err != nil {
+			return err
+		} else {
+			fmt.Fprintf(updatingView, "%s\n", message)
+		}
+		return nil
+	})
+}
+
+// End gocui helper funcs
+
+// Update/Populate views automatically
 func updateChatWindow() {
 
 	runOpts := keybase.RunOptions{
@@ -542,12 +242,297 @@ func updateChatWindow() {
 		runOpts)
 
 }
+func populateChat() {
+	lastMessage.ID = 0
+	chat := k.NewChat(channel)
+	maxX, _ := g.Size()
+	api, err := chat.Read(maxX / 2)
+	if err != nil {
+		for _, testChan := range channels {
+			if channel.Name == testChan.Name {
+				channel = testChan
+				channel.TopicName = "general"
+			}
+		}
+		chat = k.NewChat(channel)
+		_, err2 := chat.Read(2)
+		if err2 != nil {
+			printToView("Feed", fmt.Sprintf("%+v", err))
+			return
+		} else {
+			go populateChat()
+			return
+		}
+	}
+	var printMe []string
+	var actuallyPrintMe string
+	if len(api.Result.Messages) > 0 {
+		lastMessage.ID = api.Result.Messages[0].Msg.ID
+	}
+	for _, message := range api.Result.Messages {
+		if message.Msg.Content.Type == "text" || message.Msg.Content.Type == "attachment" {
+			if lastMessage.ID < 1 {
+				lastMessage.ID = message.Msg.ID
+			}
+			var apiCast keybase.ChatAPI
+			apiCast.Msg = &message.Msg
+			newMessage := formatOutput(apiCast)
+			printMe = append(printMe, newMessage)
+		}
+	}
+	for i := len(printMe) - 1; i >= 0; i-- {
+		actuallyPrintMe += printMe[i]
+		if i > 0 {
+			actuallyPrintMe += "\n"
+		}
+	}
+	printToView("Chat", actuallyPrintMe)
 
+}
+func populateList() {
+	_, maxY := g.Size()
+	if testVar, err := k.ChatList(); err != nil {
+		log.Printf("%+v", err)
+	} else {
+
+		clearView("List")
+		var recentPMs = fmt.Sprintf("%s---[PMs]---%s\n", channelsHeaderColor, channelsColor)
+		var recentPMsCount = 0
+		var recentChannels = fmt.Sprintf("%s---[Teams]---%s\n", channelsHeaderColor, channelsColor)
+		var recentChannelsCount = 0
+		for _, s := range testVar.Result.Conversations {
+			channels = append(channels, s.Channel)
+			if s.Channel.MembersType == keybase.TEAM {
+				recentChannelsCount++
+				if recentChannelsCount <= ((maxY - 2) / 3) {
+					if s.Unread {
+						recentChannels += fmt.Sprintf("%s*", color(0))
+					}
+					recentChannels += fmt.Sprintf("%s\n\t#%s\n%s", s.Channel.Name, s.Channel.TopicName, channelsColor)
+				}
+			} else {
+				recentPMsCount++
+				if recentPMsCount <= ((maxY - 2) / 3) {
+					if s.Unread {
+						recentChannels += fmt.Sprintf("%s*", color(0))
+					}
+					recentPMs += fmt.Sprintf("%s\n%s", cleanChannelName(s.Channel.Name), channelsColor)
+				}
+			}
+		}
+		time.Sleep(1 * time.Millisecond)
+		printToView("List", fmt.Sprintf("%s%s%s%s", channelsColor, recentPMs, recentChannels, noColor))
+	}
+}
+
+// End update/populate views automatically
+
+// Formatting
 func cleanChannelName(c string) string {
 	newChannelName := strings.Replace(c, fmt.Sprintf("%s,", k.Username), "", 1)
 	return strings.Replace(newChannelName, fmt.Sprintf(",%s", k.Username), "", 1)
 }
+func formatOutput(api keybase.ChatAPI) string {
+	ret := ""
+	msgType := api.Msg.Content.Type
+	switch msgType {
+	case "text", "attachment":
+		var c = messageHeaderColor
+		ret = colorText(outputFormat, c, noColor)
+		tm := time.Unix(int64(api.Msg.SentAt), 0)
+		var msg = api.Msg.Content.Text.Body
+		// mention teams or users
+		msg = colorRegex(msg, `(@\w*(\.\w+)*)`, messageLinkColor, messageBodyColor)
+		// mention URL
+		msg = colorRegex(msg, `(https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*))`, messageLinkColor, messageBodyColor)
+		msg = colorText(colorReplaceMentionMe(msg, messageBodyColor), messageBodyColor, c)
+		if msgType == "attachment" {
+			msg = fmt.Sprintf("%s\n%s", msg, colorText("[Attachment]", messageAttachmentColor, c))
+		}
 
+		user := colorUsername(api.Msg.Sender.Username, c)
+		device := colorText(api.Msg.Sender.DeviceName, messageSenderDeviceColor, c)
+		msgId := colorText(fmt.Sprintf("%d", api.Msg.ID), messageIdColor, c)
+		ts := colorText(fmt.Sprintf("%s", tm.Format(timeFormat)), messageTimeColor, c)
+		ret = strings.Replace(ret, "$MSG", msg, 1)
+		ret = strings.Replace(ret, "$USER", user, 1)
+		ret = strings.Replace(ret, "$DEVICE", device, 1)
+		ret = strings.Replace(ret, "$ID", msgId, 1)
+		ret = strings.Replace(ret, "$TIME", ts, 1)
+		ret = strings.Replace(ret, "$DATE", fmt.Sprintf("%s", tm.Format(dateFormat)), 1)
+		ret = strings.Replace(ret, "```", fmt.Sprintf("\n<code>\n"), -1)
+	}
+	return ret
+}
+
+// End formatting
+
+// Tab completion
+func getCurrentChannelMembership() []string {
+	var rs []string
+	if channel.Name != "" {
+		t := k.NewTeam(channel.Name)
+		if testVar, err := t.MemberList(); err != nil {
+			return rs // then this isn't a team, its a PM or there was an error in the API call
+		} else {
+			for _, m := range testVar.Result.Members.Owners {
+				rs = append(rs, fmt.Sprintf("%+v", m.Username))
+			}
+			for _, m := range testVar.Result.Members.Admins {
+				rs = append(rs, fmt.Sprintf("%+v", m.Username))
+			}
+			for _, m := range testVar.Result.Members.Writers {
+				rs = append(rs, fmt.Sprintf("%+v", m.Username))
+			}
+			for _, m := range testVar.Result.Members.Readers {
+				rs = append(rs, fmt.Sprintf("%+v", m.Username))
+			}
+		}
+	}
+	return rs
+}
+func filterStringSlice(ss []string, fv string) []string {
+	var rs []string
+	for _, s := range ss {
+		if strings.HasPrefix(s, fv) {
+			rs = append(rs, s)
+		}
+	}
+	return rs
+}
+func longestCommonPrefix(ss []string) string {
+	// cover the case where the slice has no or one members
+	switch len(ss) {
+	case 0:
+		return ""
+	case 1:
+		return ss[0]
+	}
+	// all strings are compared by bytes here forward (TBD unicode normalization?)
+	// establish min, max lenth members of the slice by iterating over the members
+	min, max := ss[0], ss[0]
+	for _, s := range ss[1:] {
+		switch {
+		case s < min:
+			min = s
+		case s > max:
+			max = s
+		}
+	}
+	// then iterate over the characters from min to max, as soon as chars don't match return
+	for i := 0; i < len(min) && i < len(max); i++ {
+		if min[i] != max[i] {
+			return min[:i]
+		}
+	}
+	// to cover the case where all members are equal, just return one
+	return min
+}
+func stringRemainder(aStr, bStr string) string {
+	var long, short string
+	//figure out which string is longer
+	switch {
+	case len(aStr) < len(bStr):
+		short = aStr
+		long = bStr
+	default:
+		short = bStr
+		long = aStr
+	}
+	// iterate over the strings using an external iterator so we don't lose the value
+	i := 0
+	for i < len(short) && i < len(long) {
+		if short[i] != long[i] {
+			// the strings aren't equal so don't return anything
+			return ""
+		}
+		i++
+	}
+	// return whatever's left of the longer string
+	return long[i:]
+}
+func appendIfNotInSlice(ss []string, s string) []string {
+	for _, element := range ss {
+		if element == s {
+			return ss
+		}
+	}
+	return append(ss, s)
+}
+func generateChannelTabCompletionSlice(inputWord string) []string {
+	// create a slice to hold the values
+	var firstSlice []string
+	// iterate over all the conversation results
+	for _, s := range channels {
+		if s.MembersType == keybase.TEAM {
+			// its a team so add the topic name as a possible tab completion
+			firstSlice = appendIfNotInSlice(firstSlice, s.TopicName)
+			firstSlice = appendIfNotInSlice(firstSlice, s.Name)
+		} else {
+			// its a user, so clean the name and append the users name as a possible tab completion
+			firstSlice = appendIfNotInSlice(firstSlice, cleanChannelName(s.Name))
+		}
+	}
+	// next fetch all members of the current channel and add them to the slice
+	secondSlice := getCurrentChannelMembership()
+	for _, m := range secondSlice {
+		firstSlice = appendIfNotInSlice(firstSlice, m)
+	}
+	// now return the resultSlice which contains all that are prefixed with inputWord
+	resultSlice := filterStringSlice(firstSlice, inputWord)
+	return resultSlice
+}
+func generateEmojiTabCompletionSlice(inputWord string) []string {
+	// use the emojiSlice from emojiList.go and filter it for the input word
+	resultSlice := filterStringSlice(emojiSlice, inputWord)
+	return resultSlice
+}
+func handleTab() error {
+	inputString, err := getInputString("Input")
+	if err != nil {
+		return err
+	} else {
+		// if you successfully get an input string, grab the last word from the string
+		ss := regexp.MustCompile(`[ #]`).Split(inputString, -1)
+		s := ss[len(ss)-1]
+		// create a variable in which to store the result
+		var resultSlice []string
+		// if the word starts with a : its an emoji lookup
+		if strings.HasPrefix(s, ":") {
+			resultSlice = generateEmojiTabCompletionSlice(s)
+		} else {
+			// now in case the word (s) is a mention @something, lets remove it to normalize
+			if strings.HasPrefix(s, "@") {
+				s = strings.Replace(s, "@", "", 1)
+			}
+			// now call get the list of all possible cantidates that have that as a prefix
+			resultSlice = generateChannelTabCompletionSlice(s)
+		}
+		rLen := len(resultSlice)
+		lcp := longestCommonPrefix(resultSlice)
+		if lcp != "" {
+			originalViewTitle := getViewTitle("Input")
+			newViewTitle := ""
+			if rLen >= 1 && originalViewTitle != "" {
+				if rLen == 1 {
+					newViewTitle = originalViewTitle
+				} else if rLen <= 5 {
+					newViewTitle = fmt.Sprintf("%s|| %s", originalViewTitle, strings.Join(resultSlice, " "))
+				} else if rLen > 5 {
+					newViewTitle = fmt.Sprintf("%s|| %s +%d more", originalViewTitle, strings.Join(resultSlice[:6], " "), rLen-5)
+				}
+				setViewTitle("Input", newViewTitle)
+				remainder := stringRemainder(s, lcp)
+				writeToView("Input", remainder)
+			}
+		}
+	}
+	return nil
+}
+
+// End tab completion
+
+// Input handling
 func handleMessage(api keybase.ChatAPI) {
 	if _, ok := typeCommands[api.Msg.Content.Type]; ok {
 		if api.Msg.Channel.MembersType == channel.MembersType && cleanChannelName(api.Msg.Channel.Name) == channel.Name {
@@ -612,9 +597,16 @@ func handleMessage(api keybase.ChatAPI) {
 		}
 	}
 }
-
-// It seems that golang doesn't have filter and other high order functions :'(
-func delete_empty(s []string) []string {
+func getInputString(viewName string) (string, error) {
+	inputView, err := g.View(viewName)
+	if err != nil {
+		return "", err
+	}
+	retString := inputView.Buffer()
+	retString = strings.Replace(retString, "\n", "", 800)
+	return retString, err
+}
+func deleteEmpty(s []string) []string {
 	var r []string
 	for _, str := range s {
 		if str != "" {
@@ -623,7 +615,6 @@ func delete_empty(s []string) []string {
 	}
 	return r
 }
-
 func handleInput(viewName string) error {
 	clearView(viewName)
 	inputString, _ := getInputString(viewName)
@@ -631,7 +622,7 @@ func handleInput(viewName string) error {
 		return nil
 	}
 	if strings.HasPrefix(inputString, cmdPrefix) {
-		cmd := delete_empty(strings.Split(inputString[len(cmdPrefix):], " "))
+		cmd := deleteEmpty(strings.Split(inputString[len(cmdPrefix):], " "))
 		if c, ok := commands[cmd[0]]; ok {
 			c.Exec(cmd)
 			return nil
@@ -656,6 +647,15 @@ func handleInput(viewName string) error {
 	go populateList()
 	return nil
 }
+func sendChat(message string) {
+	chat := k.NewChat(channel)
+	_, err := chat.Send(message)
+	if err != nil {
+		printToView("Feed", fmt.Sprintf("There was an error %+v", err))
+	}
+}
+
+// End input handling
 
 func quit(g *gocui.Gui, v *gocui.View) error {
 	return gocui.ErrQuit
