@@ -18,10 +18,10 @@ For support or suggestions check out the [kbtui team](https://keybase.io/team/kb
 * Pretty format headers in List view from window size
 * Message editing
 * Twitter-style feed reading public messages
+* Message replies
 
 ## Todo
 * Track multiple conversations at once
-* Message replies
 
 
 ### Building and Running
