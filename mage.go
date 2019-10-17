@@ -79,6 +79,7 @@ func BuildEmoji() error {
 		return err
 	}
 	f.Sync()
+	sh.Run("go", "fmt")
 	return nil
 }
 
