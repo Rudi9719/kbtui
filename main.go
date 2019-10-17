@@ -368,14 +368,14 @@ func formatOutput(api keybase.ChatAPI) string {
 
 		user := colorUsername(api.Msg.Sender.Username, c)
 		device := colorText(api.Msg.Sender.DeviceName, messageSenderDeviceColor, c)
-		msgId := colorText(fmt.Sprintf("%d", api.Msg.ID), messageIdColor, c)
-		ts := colorText(fmt.Sprintf("%s", tm.Format(timeFormat)), messageTimeColor, c)
+		msgID := colorText(fmt.Sprintf("%d", api.Msg.ID), messageIdColor, c)
+		ts := colorText(tm.Format(timeFormat), messageTimeColor, c)
 		ret = strings.Replace(ret, "$MSG", msg, 1)
 		ret = strings.Replace(ret, "$USER", user, 1)
 		ret = strings.Replace(ret, "$DEVICE", device, 1)
-		ret = strings.Replace(ret, "$ID", msgId, 1)
+		ret = strings.Replace(ret, "$ID", msgID, 1)
 		ret = strings.Replace(ret, "$TIME", ts, 1)
-		ret = strings.Replace(ret, "$DATE", fmt.Sprintf("%s", tm.Format(dateFormat)), 1)
+		ret = strings.Replace(ret, "$DATE", colorText(tm.Format(dateFormat), messageTimeColor, c), 1)
 		ret = strings.Replace(ret, "```", fmt.Sprintf("\n<code>\n"), -1)
 	}
 	return ret
