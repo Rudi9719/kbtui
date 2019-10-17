@@ -23,25 +23,24 @@ func printSetting(cmd []string) {
 	switch cmd[1] {
 	case "load":
 		loadFromToml()
+		printInfo("Loading config from toml")
 	case "downloadPath":
-		printToView("Feed", fmt.Sprintf("Setting for %s -> %s", cmd[1], downloadPath))
+		printInfo(fmt.Sprintf("Setting for %s -> %s", cmd[1], downloadPath))
 	case "outputFormat":
-		printToView("Feed", fmt.Sprintf("Setting for %s -> %s", cmd[1], outputFormat))
+		printInfo(fmt.Sprintf("Setting for %s -> %s", cmd[1], outputFormat))
 	case "dateFormat":
-		printToView("Feed", fmt.Sprintf("Setting for %s -> %s", cmd[1], dateFormat))
+		printInfo(fmt.Sprintf("Setting for %s -> %s", cmd[1], dateFormat))
 	case "timeFormat":
-		printToView("Feed", fmt.Sprintf("Setting for %s -> %s", cmd[1], timeFormat))
+		printInfo(fmt.Sprintf("Setting for %s -> %s", cmd[1], timeFormat))
 	case "cmdPrefix":
-		printToView("Feed", fmt.Sprintf("Setting for %s -> %s", cmd[1], cmdPrefix))
+		printInfo(fmt.Sprintf("Setting for %s -> %s", cmd[1], cmdPrefix))
 	default:
-		printToView("Feed", fmt.Sprintf("Unknown config value %s", cmd[1]))
+		printError(fmt.Sprintf("Unknown config value %s", cmd[1]))
 	}
-
-	return
 }
 func cmdSet(cmd []string) {
 	if len(cmd) < 2 {
-		printToView("Feed", "No config value specified")
+		printError("No config value specified")
 		return
 	}
 	if len(cmd) < 3 {
@@ -51,7 +50,7 @@ func cmdSet(cmd []string) {
 	switch cmd[1] {
 	case "downloadPath":
 		if len(cmd) != 3 {
-			printToView("Feed", "Invalid download path.")
+			printError("Invalid download path.")
 		}
 		downloadPath = cmd[2]
 	case "outputFormat":
@@ -63,17 +62,17 @@ func cmdSet(cmd []string) {
 	case "cmdPrefix":
 		cmdPrefix = cmd[2]
 	default:
-		printToView("Feed", fmt.Sprintf("Unknown config value %s", cmd[1]))
+		printError(fmt.Sprintf("Unknown config value %s", cmd[1]))
 	}
 
 }
 func loadFromToml() {
-	printToView("Feed", fmt.Sprintf("Loading config from toml"))
 	config, err := toml.LoadFile("kbtui.tml")
 	if err != nil {
-		printToView("Feed", fmt.Sprintf("Could not read config file: %+v", err))
+		printError(fmt.Sprintf("Could not read config file: %+v", err))
 		return
 	}
+	colorless = config.GetDefault("Basics.colorless", false).(bool)
 	if config.Has("Basics.colorless") {
 		colorless = config.Get("Basics.colorless").(bool)
 	}
@@ -92,5 +91,26 @@ func loadFromToml() {
 	if config.Has("Formatting.timeFormat") {
 		timeFormat = config.Get("Formatting.timeFormat").(string)
 	}
+	channelsColor = styleFromConfig(config, "channels.basic")
+
+	channelsHeaderColor = styleFromConfig(config, "channels.header")
+	channelUnreadColor = styleFromConfig(config, "channels.unread")
+
+	mentionColor = styleFromConfig(config, "message.mention")
+	messageHeaderColor = styleFromConfig(config, "message.header")
+	messageIDColor = styleFromConfig(config, "message.id")
+	messageTimeColor = styleFromConfig(config, "message.time")
+	messageSenderDefaultColor = styleFromConfig(config, "message.sender_default")
+	messageSenderDeviceColor = styleFromConfig(config, "message.sender_device")
+	messageBodyColor = styleFromConfig(config, "message.body")
+	messageAttachmentColor = styleFromConfig(config, "message.attachment")
+	messageLinkURLColor = styleFromConfig(config, "message.link_url")
+	messageLinkKeybaseColor = styleFromConfig(config, "message.link_keybase")
+	messageReactionColor = styleFromConfig(config, "message.reaction")
+	messageCodeColor = styleFromConfig(config, "message.code")
+
+	feedColor = styleFromConfig(config, "feed.basic")
+	errorColor = styleFromConfig(config, "feed.error")
+
 	RunCommand("clean")
 }

@@ -2,6 +2,10 @@
 
 package main
 
+import (
+	"fmt"
+)
+
 func init() {
 	command := Command{
 		Cmd:         []string{"stream", "s"},
@@ -17,7 +21,7 @@ func cmdStream(cmd []string) {
 	stream = true
 	channel.Name = ""
 
-	printToView("Feed", "You are now viewing the formatted stream")
-	setViewTitle("Input", " Stream - Not in a chat /j to join ")
+	printInfo("You are now viewing the formatted stream")
+	setViewTitle("Input", fmt.Sprintf(" Stream - Not in a chat. %sj to join ", cmdPrefix))
 	clearView("Chat")
 }

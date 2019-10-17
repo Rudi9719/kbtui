@@ -64,13 +64,14 @@ func cmdPopulateWall(cmd []string) {
 	if len(users) < 1 {
 		return
 	}
-	printToView("Feed", fmt.Sprintf("Displaying public messages for user %s", requestedUsers))
+
+	printInfoF("Displaying public messages for user $TEXT", messageLinkKeybaseColor.stylize(requestedUsers))
 	for _, chann := range users {
 		chat := k.NewChat(chann)
 		api, err := chat.Read()
 		if err != nil {
 			if len(users) < 6 {
-				printToView("Feed", fmt.Sprintf("There was an error for user %s: %+v", cleanChannelName(chann.Name), err))
+				printError(fmt.Sprintf("There was an error for user %s: %+v", cleanChannelName(chann.Name), err))
 				return
 			}
 		} else {

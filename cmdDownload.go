@@ -21,22 +21,22 @@ func init() {
 func cmdDownloadFile(cmd []string) {
 
 	if len(cmd) < 2 {
-		printToView("Feed", fmt.Sprintf("%s%s $messageId $fileName - Download a file to user's downloadpath", cmdPrefix, cmd[0]))
+		printInfo(fmt.Sprintf("%s%s $messageId $fileName - Download a file to user's downloadpath", cmdPrefix, cmd[0]))
 		return
 	}
 	messageID, err := strconv.Atoi(cmd[1])
 	if err != nil {
-		printToView("Feed", "There was an error converting your messageID to an int")
+		printError("There was an error converting your messageID to an int")
 		return
 	}
 	chat := k.NewChat(channel)
 	api, err := chat.ReadMessage(messageID)
 	if err != nil {
-		printToView("Feed", fmt.Sprintf("There was an error pulling message %d", messageID))
+		printError(fmt.Sprintf("There was an error pulling message %d", messageID))
 		return
 	}
 	if api.Result.Messages[0].Msg.Content.Type != "attachment" {
-		printToView("Feed", "No attachment detected")
+		printError("No attachment detected")
 		return
 	}
 	var fileName string
@@ -47,9 +47,10 @@ func cmdDownloadFile(cmd []string) {
 	}
 
 	_, err = chat.Download(messageID, fmt.Sprintf("%s/%s", downloadPath, fileName))
+	channelName := messageLinkKeybaseColor.stylize(channel.Name)
 	if err != nil {
-		printToView("Feed", fmt.Sprintf("There was an error downloading %s from %s", fileName, channel.Name))
+		printErrorF(fmt.Sprintf("There was an error downloading %s from $TEXT", fileName), channelName)
 	} else {
-		printToView("Feed", fmt.Sprintf("Downloaded %s from %s", fileName, channel.Name))
+		printInfoF(fmt.Sprintf("Downloaded %s from $TEXT", fileName), channelName)
 	}
 }

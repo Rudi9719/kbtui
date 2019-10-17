@@ -42,20 +42,20 @@ func cmdWallet(cmd []string) {
 		walletConfirmationCode = b.String()
 		walletConfirmationUser = cmd[1]
 		walletTransactionAmnt = cmd[2]
-		printToView("Feed", fmt.Sprintf("To confirm sending %s to %s, type /confirm %s %s", cmd[2], cmd[1], cmd[1], walletConfirmationCode))
+		printInfo(fmt.Sprintf("To confirm sending %s to %s, type /confirm %s %s", cmd[2], cmd[1], cmd[1], walletConfirmationCode))
 
 	} else if cmd[0] == "confirm" {
 		if cmd[1] == walletConfirmationUser && cmd[2] == walletConfirmationCode {
 			txWallet := k.NewWallet()
 			wAPI, err := txWallet.SendXLM(walletConfirmationUser, walletTransactionAmnt, "")
 			if err != nil {
-				printToView("Feed", fmt.Sprintf("There was an error with your wallet tx:\n\t%+v", err))
+				printError(fmt.Sprintf("There was an error with your wallet tx:\n\t%+v", err))
 			} else {
-				printToView("Feed", fmt.Sprintf("You have sent %sXLM to %s with tx ID: %s", wAPI.Result.Amount, wAPI.Result.ToUsername, wAPI.Result.TxID))
+				printInfo(fmt.Sprintf("You have sent %sXLM to %s with tx ID: %s", wAPI.Result.Amount, wAPI.Result.ToUsername, wAPI.Result.TxID))
 			}
 
 		} else {
-			printToView("Feed", "There was an error validating your confirmation. Your wallet has been untouched.")
+			printError("There was an error validating your confirmation. Your wallet has been untouched.")
 		}
 
 	}

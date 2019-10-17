@@ -16,15 +16,48 @@ timeFormat = "15:04"
 
 
 [Colors]
-channelsColor = 8
-channelsHeaderColor = 6
-noColor = -1
-mentionColor = 3
-messageHeaderColor = 8
-messageIdColor = 7
-messageTimeColor = 6
-messageSenderDefaultColor = 8
-messageSenderDeviceColor = 8
-messageBodyColor = -1
-messageAttachmentColor = 2
-messageLinkColor = 4
+	 [Colors.channels]
+		  [Colors.channels.basic]
+		  foreground = "normal" 
+		  [Colors.channels.header]
+		  foreground = "magenta"
+		  bold = true
+		  [Colors.channels.unread]
+		  foreground = "green"
+		  italic = true
+
+	 [Colors.message]
+		  [Colors.message.body]
+		  foreground = "normal" 
+		  [Colors.message.header]
+		  foreground = "grey"
+		  [Colors.message.mention]
+		  foreground = "green"
+		  italic = true
+		  bold = true
+		  [Colors.message.id]
+		  foreground = "yellow"
+		  [Colors.message.time]
+		  foreground = "magenta"
+		  [Colors.message.sender_default]
+		  foreground = "cyan"
+		  bold = true
+		  [Colors.message.sender_device]
+		  foreground = "cyan"
+		  [Colors.message.attachment]
+		  foreground = "red" 
+		  [Colors.message.link_url]
+		  foreground = "yellow" 
+		  [Colors.message.link_keybase]
+		  foreground = "yellow" 
+		  [Colors.message.reaction]
+		  foreground = "magenta"
+		  bold = true
+		  [Colors.message.code]
+		  foreground = "cyan"
+		  background = "grey"
+	 [Colors.feed]
+		  [Colors.feed.basic]
+		  foreground = "grey"
+		  [Colors.feed.error]
+		  foreground = "red"

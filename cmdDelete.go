@@ -3,7 +3,6 @@
 package main
 
 import (
-	"fmt"
 	"strconv"
 )
 
@@ -28,7 +27,7 @@ func cmdDelete(cmd []string) {
 	chat := k.NewChat(channel)
 	_, err := chat.Delete(messageID)
 	if err != nil {
-		printToView("Feed", fmt.Sprintf("There was an error deleting your message."))
+		printError("There was an error deleting your message.")
 	}
 
 }
