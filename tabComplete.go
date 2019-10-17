@@ -14,8 +14,8 @@ var (
 )
 
 // This defines the handleTab function thats called by key bindind tab for the input control.
-func handleTab() error {
-	inputString, err := getInputString("Input")
+func handleTab(viewName string) error {
+	inputString, err := getInputString(viewName)
 	if err != nil {
 		return err
 	} else {
@@ -48,9 +48,9 @@ func handleTab() error {
 				} else if rLen > 5 {
 					newViewTitle = fmt.Sprintf("%s|| %s +%d more", originalViewTitle, strings.Join(resultSlice[:6], " "), rLen-5)
 				}
-				setViewTitle("Input", newViewTitle)
+				setViewTitle(viewName, newViewTitle)
 				remainder := stringRemainder(s, lcp)
-				writeToView("Input", remainder)
+				writeToView(viewName, remainder)
 			}
 		}
 	}

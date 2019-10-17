@@ -137,7 +137,7 @@ func initKeybindings() error {
 	}
 	if err := g.SetKeybinding("Input", gocui.KeyTab, gocui.ModNone,
 		func(g *gocui.Gui, v *gocui.View) error {
-			return handleTab()
+			return handleTab("Input")
 		}); err != nil {
 		return err
 	}
