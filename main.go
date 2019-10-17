@@ -150,6 +150,13 @@ func initKeybindings() error {
 		}); err != nil {
 		return err
 	}
+	if err := g.SetKeybinding("Input", gocui.KeyArrowUp, gocui.ModNone,
+		func(g *gocui.Gui, v *gocui.View) error {
+			RunCommand("edit")
+			return nil
+		}); err != nil {
+		return err
+	}
 	return nil
 }
 
