@@ -116,5 +116,5 @@ func BuildAllCommandsT() {
 // Build kbtui with beta functionality
 func BuildBeta() {
 	mg.Deps(BuildEmoji)
-	sh.Run("go", "build", "-tags", "allcommands,showreactionscmd,emojiList")
+	sh.Run("go", "build", "-tags", "allcommands,showreactionscmd,emojiList,tabcompletion")
 }
