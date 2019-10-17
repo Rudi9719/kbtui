@@ -1,7 +1,9 @@
+// +build !rm_basic_commands allcommands tabcompletion
 package main
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 
 	"samhofi.us/x/keybase"
@@ -10,6 +12,50 @@ import (
 var (
 	tabSlice []string
 )
+
+// This defines the handleTab function thats called by key bindind tab for the input control.
+func handleTab() error {
+	inputString, err := getInputString("Input")
+	if err != nil {
+		return err
+	} else {
+		// if you successfully get an input string, grab the last word from the string
+		ss := regexp.MustCompile(`[ #]`).Split(inputString, -1)
+		s := ss[len(ss)-1]
+		// create a variable in which to store the result
+		var resultSlice []string
+		// if the word starts with a : its an emoji lookup
+		if strings.HasPrefix(s, ":") {
+			resultSlice = getEmojiTabCompletionSlice(s)
+		} else {
+			if strings.HasPrefix(s, "@") {
+				// now in case the word (s) is a mention @something, lets remove it to normalize
+				s = strings.Replace(s, "@", "", 1)
+			}
+			// now call get the list of all possible cantidates that have that as a prefix
+			resultSlice = getChannelTabCompletionSlice(s)
+		}
+		rLen := len(resultSlice)
+		lcp := longestCommonPrefix(resultSlice)
+		if lcp != "" {
+			originalViewTitle := getViewTitle("Input")
+			newViewTitle := ""
+			if rLen >= 1 && originalViewTitle != "" {
+				if rLen == 1 {
+					newViewTitle = originalViewTitle
+				} else if rLen <= 5 {
+					newViewTitle = fmt.Sprintf("%s|| %s", originalViewTitle, strings.Join(resultSlice, " "))
+				} else if rLen > 5 {
+					newViewTitle = fmt.Sprintf("%s|| %s +%d more", originalViewTitle, strings.Join(resultSlice[:6], " "), rLen-5)
+				}
+				setViewTitle("Input", newViewTitle)
+				remainder := stringRemainder(s, lcp)
+				writeToView("Input", remainder)
+			}
+		}
+	}
+	return nil
+}
 
 // Main tab completion functions
 func getEmojiTabCompletionSlice(inputWord string) []string {
@@ -23,7 +69,7 @@ func getChannelTabCompletionSlice(inputWord string) []string {
 	return resultSlice
 }
 
-//Generator Functions
+//Generator Functions (should be called externally when chat/list/join changes
 func generateChannelTabCompletionSlice() {
 	// fetch all members of the current channel and add them to the slice
 	channelSlice := getCurrentChannelMembership()

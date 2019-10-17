@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"regexp"
 	"strings"
 	"time"
 
@@ -385,49 +384,6 @@ func formatOutput(api keybase.ChatAPI) string {
 }
 
 // End formatting
-
-func handleTab() error {
-	inputString, err := getInputString("Input")
-	if err != nil {
-		return err
-	} else {
-		// if you successfully get an input string, grab the last word from the string
-		ss := regexp.MustCompile(`[ #]`).Split(inputString, -1)
-		s := ss[len(ss)-1]
-		// create a variable in which to store the result
-		var resultSlice []string
-		// if the word starts with a : its an emoji lookup
-		if strings.HasPrefix(s, ":") {
-			resultSlice = getEmojiTabCompletionSlice(s)
-		} else {
-			if strings.HasPrefix(s, "@") {
-				// now in case the word (s) is a mention @something, lets remove it to normalize
-				s = strings.Replace(s, "@", "", 1)
-			}
-			// now call get the list of all possible cantidates that have that as a prefix
-			resultSlice = getChannelTabCompletionSlice(s)
-		}
-		rLen := len(resultSlice)
-		lcp := longestCommonPrefix(resultSlice)
-		if lcp != "" {
-			originalViewTitle := getViewTitle("Input")
-			newViewTitle := ""
-			if rLen >= 1 && originalViewTitle != "" {
-				if rLen == 1 {
-					newViewTitle = originalViewTitle
-				} else if rLen <= 5 {
-					newViewTitle = fmt.Sprintf("%s|| %s", originalViewTitle, strings.Join(resultSlice, " "))
-				} else if rLen > 5 {
-					newViewTitle = fmt.Sprintf("%s|| %s +%d more", originalViewTitle, strings.Join(resultSlice[:6], " "), rLen-5)
-				}
-				setViewTitle("Input", newViewTitle)
-				remainder := stringRemainder(s, lcp)
-				writeToView("Input", remainder)
-			}
-		}
-	}
-	return nil
-}
 
 // Input handling
 func handleMessage(api keybase.ChatAPI) {
