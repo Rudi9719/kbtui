@@ -10,7 +10,8 @@ import (
 )
 
 var (
-	tabSlice []string
+	tabSlice     []string
+	commandSlice []string
 )
 
 // This defines the handleTab function thats called by key bindind tab for the input control.
@@ -27,6 +28,10 @@ func handleTab(viewName string) error {
 		// if the word starts with a : its an emoji lookup
 		if strings.HasPrefix(s, ":") {
 			resultSlice = getEmojiTabCompletionSlice(s)
+		} else if strings.HasPrefix(s, "/") {
+			generateCommandTabCompletionSlice()
+			s = strings.Replace(s, "/", "", 1)
+			resultSlice = getCommandTabCompletionSlice(s)
 		} else {
 			if strings.HasPrefix(s, "@") {
 				// now in case the word (s) is a mention @something, lets remove it to normalize
@@ -68,6 +73,11 @@ func getChannelTabCompletionSlice(inputWord string) []string {
 	resultSlice := filterStringSlice(tabSlice, inputWord)
 	return resultSlice
 }
+func getCommandTabCompletionSlice(inputWord string) []string {
+	// use the commandSlice from above and filter it for the input word
+	resultSlice := filterStringSlice(commandSlice, inputWord)
+	return resultSlice
+}
 
 //Generator Functions (should be called externally when chat/list/join changes
 func generateChannelTabCompletionSlice() {
@@ -75,6 +85,19 @@ func generateChannelTabCompletionSlice() {
 	channelSlice := getCurrentChannelMembership()
 	for _, m := range channelSlice {
 		tabSlice = appendIfNotInSlice(tabSlice, m)
+	}
+}
+func generateCommandTabCompletionSlice() {
+	// get the maps of all built commands - this should only need to be done on startup
+	// removing typeCommands for now, since they aren't actually commands you can type - contrary to the naming
+	/*for commandString1 := range typeCommands {
+		commandSlice = appendIfNotInSlice(commandSlice, commandString1)
+	}*/
+	for commandString2 := range commands {
+		commandSlice = appendIfNotInSlice(commandSlice, commandString2)
+	}
+	for _, commandString3 := range baseCommands {
+		commandSlice = appendIfNotInSlice(commandSlice, commandString3)
 	}
 }
 func generateRecentTabCompletionSlice() {
