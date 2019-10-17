@@ -363,9 +363,8 @@ func formatOutput(api keybase.ChatAPI) string {
 		msg = colorRegex(msg, `(https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*))`, messageLinkColor, messageBodyColor)
 		msg = colorText(colorReplaceMentionMe(msg, messageBodyColor), messageBodyColor, c)
 		if msgType == "attachment" {
-			msg = fmt.Sprintf("%s\n%s", msg, colorText("[Attachment]", messageAttachmentColor, c))
+			msg = fmt.Sprintf("%s", colorText("[Attachment]", messageAttachmentColor, c))
 		}
-
 		user := colorUsername(api.Msg.Sender.Username, c)
 		device := colorText(api.Msg.Sender.DeviceName, messageSenderDeviceColor, c)
 		msgID := colorText(fmt.Sprintf("%d", api.Msg.ID), messageIdColor, c)
