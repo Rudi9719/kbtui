@@ -162,7 +162,7 @@ func getViewTitle(viewName string) string {
 	view, err := g.View(viewName)
 	if err != nil {
 		// in case there is active tab completion, filter that to just the view title and not the completion options.
-		writeToView("Feed", fmt.Sprintf("Error getting view title: %s", err))
+		printToView("Feed", fmt.Sprintf("Error getting view title: %s", err))
 		return ""
 	} else {
 		return strings.Split(view.Title, "||")[0]
