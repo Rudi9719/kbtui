@@ -17,7 +17,7 @@ var messageBodyColor = noColor
 var messageAttachmentColor = color(2)
 var messageLinkColor = color(4)
 
-// BASH-like PS1 variable equivalent (without colours)
+// BASH-like PS1 variable equivalent
 var outputFormat = "┌──[$USER@$DEVICE] [$ID] [$DATE - $TIME]\n└╼ $MSG"
 
 // 02 = Day, Jan = Month, 06 = Year
