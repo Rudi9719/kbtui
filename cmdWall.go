@@ -15,7 +15,7 @@ import (
 func init() {
 	command := Command{
 		Cmd:         []string{"wall", "w"},
-		Description: "- Show public messages for a user",
+		Description: "$user / !all - Show public messages for a user or all users you follow",
 		Help:        "",
 		Exec:        cmdWall,
 	}
