@@ -120,6 +120,15 @@ func initKeybindings() error {
 		}); err != nil {
 		return err
 	}
+	if err := g.SetKeybinding("Edit", gocui.KeyCtrlC, gocui.ModNone,
+		func(g *gocui.Gui, v *gocui.View) error {
+			popupView("Chat")
+			popupView("Input")
+			clearView("Edit")
+			return nil
+		}); err != nil {
+		return err
+	}
 	if err := g.SetKeybinding("Input", gocui.KeyEnter, gocui.ModNone,
 		func(g *gocui.Gui, v *gocui.View) error {
 			return handleInput("Input")
