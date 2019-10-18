@@ -42,5 +42,5 @@ You may see an error with `go get ./` about PATHs, that may be safely ignored.
 If you see an error about a missing dependancy during a build, you'll want to resolve that.
 
 
-Occasionally when @dxb updates his API it will be necessary to run 
-`go get -u ./`
+Occasionally when [@dxb](https://keybase.io/dxb) updates his API it will be necessary to run
+`go get -u ./` or `go get -u samhofi.us/x/keybase`

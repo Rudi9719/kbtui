@@ -486,6 +486,7 @@ func handleInput(viewName string) error {
 	}
 	if inputString[:1] == "+" || inputString[:1] == "-" {
 		cmd := strings.Split(inputString, " ")
+		cmd[0] = inputString[:1]
 		RunCommand(cmd...)
 	} else {
 		go sendChat(inputString)

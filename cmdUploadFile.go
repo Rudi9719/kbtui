@@ -20,6 +20,10 @@ func init() {
 }
 
 func cmdUploadFile(cmd []string) {
+	if len(cmd) < 2 {
+		printToView("Feed", fmt.Sprintf("%s%s $filePath $fileName - Upload file from absolute path with optional name", cmdPrefix, cmd[0]))
+		return
+	}
 	filePath := cmd[1]
 	if !strings.HasPrefix(filePath, "/") {
 		dir, err := os.Getwd()
