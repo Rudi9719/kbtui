@@ -7,8 +7,9 @@ go:
 install: true
 
 script:
-  - go get -u ./...
+  - go get -u samhofi.us/x/keybase
+  - go get -u github.com/awesome-gocui/gocui
   - go get -u github.com/magefile/mage/mage
+  - go run build.go buildBeta
   - go vet ./...
   - go fmt ./...
-  - go run build.go buildBeta
