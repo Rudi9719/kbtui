@@ -22,7 +22,7 @@ func init() {
 func cmdReply(cmd []string) {
 	chat := k.NewChat(channel)
 	if len(cmd) < 2 {
-		printToView("Feed", fmt.Sprintf("%sreply $ID - Reply to message $ID", cmdPrefix))
+		printToView("Feed", fmt.Sprintf("%s%s $ID - Reply to message $ID", cmdPrefix, cmd[0]))
 		return
 	}
 	messageID, err := strconv.Atoi(cmd[1])
