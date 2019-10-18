@@ -1,0 +1,12 @@
+language: go
+
+go:
+  - tip
+  - 1.13.x
+
+install: true
+
+script:
+  - go vet ./...
+  - go fmt ./...
+  - go run build.go buildBeta
