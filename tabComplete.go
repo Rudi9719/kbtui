@@ -1,4 +1,5 @@
 // +build !rm_basic_commands allcommands tabcompletion
+
 package main
 
 import (
