@@ -21,7 +21,7 @@ func init() {
 func cmdDownloadFile(cmd []string) {
 
 	if len(cmd) < 2 {
-		printToView("Feed", fmt.Sprintf("/%s $messageId $fileName - Download a file to user's downloadpath", cmd[0]))
+		printToView("Feed", fmt.Sprintf("%s%s $messageId $fileName - Download a file to user's downloadpath", cmdPrefix, cmd[0]))
 		return
 	}
 	messageID, _ := strconv.Atoi(cmd[1])
