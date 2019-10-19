@@ -15,7 +15,7 @@ func renderUnicodeEmoji(data emojiData) (string, error) {
 	emj, err := strconv.ParseInt(data.Unicode, 16, 32)
 	if err != nil {
 		// because not all of them are parseable (like keycaps \u0031-FE0F-20E3)
-		return nil, err
+		return "", err
 	} else {
 		return string(emj), err
 	}
