@@ -4,6 +4,8 @@ import (
 	"strconv"
 )
 
+var UNICODE_EMOJI_SUPPORT bool = false
+
 type emojiData struct {
 	Name        string
 	Description string
