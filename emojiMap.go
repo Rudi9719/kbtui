@@ -5,6 +5,7 @@ import (
 )
 
 type emojiData struct {
+	Name        string
 	Description string
 	Unicode     string
 	Alias       []string
