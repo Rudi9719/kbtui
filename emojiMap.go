@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"regexp"
 	"strconv"
 	"strings"
@@ -23,7 +22,10 @@ func emojiUnicodeConvert(s string) string {
 		if matched := reeMatch.MatchString(word); matched {
 			// renders a unicode emoji instead of the name
 			if temp, ok := emojiMap[word]; ok {
-				pStr[i] = renderUnicodeEmoji(temp)
+				emj, err := renderUnicodeEmoji(temp)
+				if err == nil {
+					pStr[i] = emj
+				} // else don't do anything to the string
 			}
 		}
 	}
