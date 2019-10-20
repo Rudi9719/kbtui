@@ -1,7 +1,10 @@
 package main
 
 import (
+	"fmt"
+	"regexp"
 	"strconv"
+	"strings"
 )
 
 var UNICODE_EMOJI_SUPPORT bool = false
@@ -11,6 +14,34 @@ type emojiData struct {
 	Description string
 	Unicode     string
 	Alias       []string
+}
+
+func emojiUnicodeConvert(s string) string {
+	pStr := strings.Fields(s)
+	reeMatch := regexp.MustCompile(`:\w+:`)
+	for i, word := range pStr {
+		if matched := reeMatch.MatchString(word); matched {
+			// renders a unicode emoji instead of the name
+			if temp, ok := emojiMap[word]; ok {
+				pStr[i] = renderUnicodeEmoji(temp)
+			}
+		}
+	}
+	return strings.Join(pStr, " ")
+}
+
+func resolveRootEmojis(s string) string {
+	pStr := strings.Fields(s)
+	reMatch := regexp.MustCompile(`:\w+:`)
+	for i, word := range pStr {
+		if matched := reMatch.MatchString(word); matched {
+			// resolves the real emoji in case they typed an alias
+			if temp, ok := emojiMap[word]; ok {
+				pStr[i] = temp.Name
+			}
+		}
+	}
+	return strings.Join(pStr, " ")
 }
 
 func renderUnicodeEmoji(data emojiData) (string, error) {
