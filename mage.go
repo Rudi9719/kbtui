@@ -78,6 +78,14 @@ func getRemotePackages() error {
 	return nil
 }
 
+// proper error reporting and exit code
+func exit(err error) {
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%+v\n", err)
+		os.Exit(1)
+	}
+}
+
 // Build kbtui with emoji lookup support
 func BuildEmoji() error {
 	mg.Deps(getRemotePackages)
@@ -98,14 +106,6 @@ func BuildEmoji() error {
 	}
 	f.Sync()
 	return nil
-}
-
-// proper error reporting and exit code
-func exit(err error) {
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "%+v\n", err)
-		os.Exit(1)
-	}
 }
 
 // Build kbtui with just the basic commands.
