@@ -5,6 +5,8 @@ package main
 import (
 	"fmt"
 	"strings"
+
+	"github.com/pelletier/go-toml"
 )
 
 func init() {
@@ -26,7 +28,8 @@ func cmdSet(cmd []string) {
 	if len(cmd) < 3 {
 		switch cmd[1] {
 		case "load":
-			printToView("Feed", "Load values from file?")
+			loadFromToml()
+			printToView("Feed", fmt.Sprintf("Loading config from toml"))
 		case "downloadPath":
 			printToView("Feed", fmt.Sprintf("Setting for %s -> %s", cmd[1], downloadPath))
 		case "outputFormat":
@@ -61,4 +64,17 @@ func cmdSet(cmd []string) {
 		printToView("Feed", fmt.Sprintf("Unknown config value %s", cmd[1]))
 	}
 
+}
+func loadFromToml() {
+	config, err := toml.LoadFile("kbtui.tml")
+	if err != nil {
+		printToView("Feed", fmt.Sprintf("Could not read config file: %+v", err))
+		return
+	}
+	colorless = config.Get("Basics.colorless").(bool)
+	downloadPath = config.Get("Basics.downloadPath").(string)
+	cmdPrefix = config.Get("Basics.cmdPrefix").(string)
+	outputFormat = config.Get("Formatting.outputFormat").(string)
+	dateFormat = config.Get("Formatting.dateFormat").(string)
+	timeFormat = config.Get("Formatting.timeFormat").(string)
 }
