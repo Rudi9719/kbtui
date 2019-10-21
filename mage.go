@@ -5,12 +5,13 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/magefile/mage/mg"
-	"github.com/magefile/mage/sh"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"strings"
+
+	"github.com/magefile/mage/mg"
+	"github.com/magefile/mage/sh"
 )
 
 // emoji related constants
