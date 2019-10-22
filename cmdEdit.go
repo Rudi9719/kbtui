@@ -49,6 +49,7 @@ func cmdEdit(cmd []string) {
 		popupView("Edit")
 		printToView("Edit", fmt.Sprintf("/e %d %s", messageID, editString))
 		setViewTitle("Edit", fmt.Sprintf(" Editing message %d ", messageID))
+		moveCursorToEnd("Edit")
 		return
 	}
 	if len(cmd) < 3 {

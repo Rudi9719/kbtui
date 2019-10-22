@@ -202,6 +202,22 @@ func popupView(viewName string) {
 
 	})
 }
+func moveCursorToEnd(viewName string) {
+	g.Update(func(g *gocui.Gui) error {
+		inputView, err := g.View(viewName)
+		if err != nil {
+			return err
+		}
+		inputString, _ := getInputString(viewName)
+		stringLen := len(inputString)
+		maxX, _ := inputView.Size()
+		x := stringLen % maxX
+		y := stringLen / maxX
+		inputView.MoveCursor(x, y, true)
+		return nil
+
+	})
+}
 func clearView(viewName string) {
 	g.Update(func(g *gocui.Gui) error {
 		inputView, err := g.View(viewName)
