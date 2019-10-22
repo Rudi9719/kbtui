@@ -1,0 +1,30 @@
+[Basics]
+downloadPath = "/tmp/"
+colorless = false
+# The prefix before evaluating a command
+cmdPrefix = "/"
+
+[Formatting]
+# BASH-like PS1 variable equivalent
+outputFormat = "┌──[$USER@$DEVICE] [$ID] [$DATE - $TIME]\n└╼ $MSG"
+
+# 02 = Day, Jan = Month, 06 = Year
+dateFormat = "02Jan06"
+
+# 15 = hours, 04 = minutes, 05 = seconds
+timeFormat = "15:04"
+
+
+[Colors]
+channelsColor = 8
+channelsHeaderColor = 6
+noColor = -1
+mentionColor = 3
+messageHeaderColor = 8
+messageIdColor = 7
+messageTimeColor = 6
+messageSenderDefaultColor = 8
+messageSenderDeviceColor = 8
+messageBodyColor = -1
+messageAttachmentColor = 2
+messageLinkColor = 4

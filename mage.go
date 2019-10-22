@@ -5,12 +5,13 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/magefile/mage/mg"
-	"github.com/magefile/mage/sh"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"strings"
+
+	"github.com/magefile/mage/mg"
+	"github.com/magefile/mage/sh"
 )
 
 // emoji related constants
@@ -61,8 +62,34 @@ func createEmojiSlice() ([]string, error) {
 	return emojiSlice, nil
 }
 
+func getRemotePackages() error {
+	var packages = []string{
+		"samhofi.us/x/keybase",
+		"github.com/awesome-gocui/gocui",
+		"github.com/magefile/mage/mage",
+		"github.com/magefile/mage/mg",
+		"github.com/magefile/mage/sh",
+		"github.com/pelletier/go-toml",
+	}
+	for _, p := range packages {
+		if err := sh.Run("go", "get", "-u", p); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// proper error reporting and exit code
+func exit(err error) {
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%+v\n", err)
+		os.Exit(1)
+	}
+}
+
 // Build kbtui with emoji lookup support
 func BuildEmoji() error {
+	mg.Deps(getRemotePackages)
 	emojis, err := createEmojiSlice()
 	if err != nil {
 		return err
@@ -84,14 +111,24 @@ func BuildEmoji() error {
 
 // Build kbtui with just the basic commands.
 func Build() {
-	sh.Run("go", "build")
+	mg.Deps(getRemotePackages)
+	if err := sh.Run("go", "build"); err != nil {
+		defer func() {
+			exit(err)
+		}()
+	}
 }
 
 // Build kbtui with the basic commands, and the ShowReactions "TypeCommand".
 // The ShowReactions TypeCommand will print a message in the feed window when
 // a reaction is received in the current conversation.
 func BuildShowReactions() {
-	sh.Run("go", "build", "-tags", "showreactionscmd")
+	mg.Deps(getRemotePackages)
+	if err := sh.Run("go", "build", "-tags", "showreactionscmd"); err != nil {
+		defer func() {
+			exit(err)
+		}()
+	}
 }
 
 // Build kbtui with the basec commands, and the AutoReact "TypeCommand".
@@ -99,21 +136,41 @@ func BuildShowReactions() {
 // received in the current conversation. This gets pretty annoying, and
 // is not recommended.
 func BuildAutoReact() {
-	sh.Run("go", "build", "-tags", "autoreactcmd")
+	mg.Deps(getRemotePackages)
+	if err := sh.Run("go", "build", "-tags", "autoreactcmd"); err != nil {
+		defer func() {
+			exit(err)
+		}()
+	}
 }
 
 // Build kbtui with all commands and TypeCommands disabled.
 func BuildAllCommands() {
-	sh.Run("go", "build", "-tags", "allcommands")
+	mg.Deps(getRemotePackages)
+	if err := sh.Run("go", "build", "-tags", "allcommands"); err != nil {
+		defer func() {
+			exit(err)
+		}()
+	}
 }
 
 // Build kbtui with all Commands and TypeCommands enabled.
 func BuildAllCommandsT() {
-	sh.Run("go", "build", "-tags", "type_commands,allcommands")
+	mg.Deps(getRemotePackages)
+	if err := sh.Run("go", "build", "-tags", "type_commands,allcommands"); err != nil {
+		defer func() {
+			exit(err)
+		}()
+	}
 }
 
 // Build kbtui with beta functionality
 func BuildBeta() {
+	mg.Deps(getRemotePackages)
 	mg.Deps(BuildEmoji)
-	sh.Run("go", "build", "-tags", "allcommands,showreactionscmd,emojiList")
+	if err := sh.Run("go", "build", "-tags", "allcommands,showreactionscmd,emojiList,tabcompletion"); err != nil {
+		defer func() {
+			exit(err)
+		}()
+	}
 }

@@ -1,0 +1,13 @@
+language: go
+
+go:
+  - tip
+  - 1.13.x
+
+install: true
+
+script:
+  - go get -u github.com/magefile/mage/mage
+  - go run build.go buildBeta
+  - go vet ./...
+  - go fmt ./...
