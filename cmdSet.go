@@ -71,10 +71,22 @@ func loadFromToml() {
 		printToView("Feed", fmt.Sprintf("Could not read config file: %+v", err))
 		return
 	}
-	colorless = config.Get("Basics.colorless").(bool)
-	downloadPath = config.Get("Basics.downloadPath").(string)
-	cmdPrefix = config.Get("Basics.cmdPrefix").(string)
-	outputFormat = config.Get("Formatting.outputFormat").(string)
-	dateFormat = config.Get("Formatting.dateFormat").(string)
-	timeFormat = config.Get("Formatting.timeFormat").(string)
+	if config.Has("Basics.colorless") {
+		colorless = config.Get("Basics.colorless").(bool)
+	}
+	if config.Has("Basics.downloadPath") {
+		downloadPath = config.Get("Basics.downloadPath").(string)
+	}
+	if config.Has("Basics.cmdPrefix") {
+		cmdPrefix = config.Get("Basics.cmdPrefix").(string)
+	}
+	if config.Has("Formatting.outputFormat") {
+		outputFormat = config.Get("Formatting.outputFormat").(string)
+	}
+	if config.Has("Formatting.dateFormat") {
+		dateFormat = config.Get("Formatting.dateFormat").(string)
+	}
+	if config.Has("Formatting.timeFormat") {
+		timeFormat = config.Get("Formatting.timeFormat").(string)
+	}
 }
