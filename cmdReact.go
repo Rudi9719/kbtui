@@ -10,7 +10,7 @@ import (
 func init() {
 	command := Command{
 		Cmd:         []string{"react", "r", "+"},
-		Description: "$messageId $reaction - React to a message (messageID is optional)",
+		Description: "$messageID $reaction - React to a message (messageID is optional)",
 		Help:        "",
 		Exec:        cmdReact,
 	}
@@ -20,7 +20,7 @@ func init() {
 
 func cmdReact(cmd []string) {
 	if len(cmd) > 2 {
-		reactToMessageId(cmd[1], strings.Join(cmd[2:], " "))
+		reactToMessageID(cmd[1], strings.Join(cmd[2:], " "))
 	} else if len(cmd) == 2 {
 		reactToMessage(cmd[1])
 	}
@@ -30,13 +30,13 @@ func cmdReact(cmd []string) {
 func reactToMessage(reaction string) {
 	doReact(lastMessage.ID, reaction)
 }
-func reactToMessageId(messageId string, reaction string) {
-	ID, _ := strconv.Atoi(messageId)
+func reactToMessageID(messageID string, reaction string) {
+	ID, _ := strconv.Atoi(messageID)
 	doReact(ID, reaction)
 }
-func doReact(messageId int, reaction string) {
+func doReact(messageID int, reaction string) {
 	chat := k.NewChat(channel)
-	_, err := chat.React(messageId, reaction)
+	_, err := chat.React(messageID, reaction)
 	if err != nil {
 		printToView("Feed", "There was an error reacting to the message.")
 	}
