@@ -196,8 +196,7 @@ func popupView(viewName string) {
 		if err != nil {
 			return err
 		}
-		viewX, viewY := updatingView.Size()
-		updatingView.MoveCursor(viewX, viewY, true)
+		updatingView.MoveCursor(0, 0, true)
 
 		return nil
 
