@@ -213,6 +213,8 @@ func moveCursorToEnd(viewName string) {
 		maxX, _ := inputView.Size()
 		x := stringLen % maxX
 		y := stringLen / maxX
+		inputView.SetCursor(0, 0)
+		inputView.SetOrigin(0, 0)
 		inputView.MoveCursor(x, y, true)
 		return nil
 
