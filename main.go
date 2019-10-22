@@ -114,9 +114,8 @@ func initKeybindings() error {
 			if input != "" {
 				clearView("Input")
 				return nil
-			} else {
-				return gocui.ErrQuit
 			}
+			return gocui.ErrQuit
 		}); err != nil {
 		return err
 	}
@@ -168,9 +167,8 @@ func setViewTitle(viewName string, title string) {
 		updatingView, err := g.View(viewName)
 		if err != nil {
 			return err
-		} else {
-			updatingView.Title = title
 		}
+		updatingView.Title = title
 		return nil
 	})
 }
@@ -180,9 +178,9 @@ func getViewTitle(viewName string) string {
 		// in case there is active tab completion, filter that to just the view title and not the completion options.
 		printToView("Feed", fmt.Sprintf("Error getting view title: %s", err))
 		return ""
-	} else {
-		return strings.Split(view.Title, "||")[0]
 	}
+	return strings.Split(view.Title, "||")[0]
+
 }
 func popupView(viewName string) {
 	_, err := g.SetCurrentView(viewName)
@@ -197,10 +195,10 @@ func popupView(viewName string) {
 		updatingView, err := g.View(viewName)
 		if err != nil {
 			return err
-		} else {
-			viewX, viewY := updatingView.Size()
-			updatingView.MoveCursor(viewX, viewY, true)
 		}
+		viewX, viewY := updatingView.Size()
+		updatingView.MoveCursor(viewX, viewY, true)
+
 		return nil
 
 	})
@@ -210,11 +208,11 @@ func clearView(viewName string) {
 		inputView, err := g.View(viewName)
 		if err != nil {
 			return err
-		} else {
-			inputView.Clear()
-			inputView.SetCursor(0, 0)
-			inputView.SetOrigin(0, 0)
 		}
+		inputView.Clear()
+		inputView.SetCursor(0, 0)
+		inputView.SetOrigin(0, 0)
+
 		return nil
 	})
 
@@ -224,11 +222,11 @@ func writeToView(viewName string, message string) {
 		updatingView, err := g.View(viewName)
 		if err != nil {
 			return err
-		} else {
-			for _, c := range message {
-				updatingView.EditWrite(c)
-			}
 		}
+		for _, c := range message {
+			updatingView.EditWrite(c)
+		}
+
 		return nil
 	})
 }
@@ -237,9 +235,8 @@ func printToView(viewName string, message string) {
 		updatingView, err := g.View(viewName)
 		if err != nil {
 			return err
-		} else {
-			fmt.Fprintf(updatingView, "%s\n", message)
 		}
+		fmt.Fprintf(updatingView, "%s\n", message)
 		return nil
 	})
 }
@@ -275,11 +272,11 @@ func populateChat() {
 		if err2 != nil {
 			printToView("Feed", fmt.Sprintf("%+v", err))
 			return
-		} else {
-			go populateChat()
-			go generateChannelTabCompletionSlice()
-			return
 		}
+		go populateChat()
+		go generateChannelTabCompletionSlice()
+		return
+
 	}
 	var printMe []string
 	var actuallyPrintMe string
