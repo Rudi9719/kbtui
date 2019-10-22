@@ -25,10 +25,16 @@ func cmdEdit(cmd []string) {
 	if len(cmd) == 2 || len(cmd) == 1 {
 		if len(cmd) == 2 {
 			messageId, _ = strconv.Atoi(cmd[1])
-		} else {
+		} else if lastMessage.ID != 0 {
+			if lastMessage.Type != "text" {
+				printToView("Feed", "Last message isn't editable (is it an edit?)")
+				return
+			}
 			messageId = lastMessage.ID
+		} else {
+			printToView("Feed", "No message to edit")
+			return
 		}
-
 		origMessage, _ := chat.ReadMessage(messageId)
 		if origMessage.Result.Messages[0].Msg.Content.Type != "text" {
 			printToView("Feed", fmt.Sprintf("%+v", origMessage))
