@@ -69,6 +69,7 @@ func getRemotePackages() error {
 		"github.com/magefile/mage/mage",
 		"github.com/magefile/mage/mg",
 		"github.com/magefile/mage/sh",
+		"github.com/pelletier/go-toml",
 	}
 	for _, p := range packages {
 		if err := sh.Run("go", "get", "-u", p); err != nil {
