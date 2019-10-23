@@ -15,6 +15,7 @@ func init() {
 
 func cmdClean(cmd []string) {
 	clearView("Chat")
+	clearView("List")
 	go populateChat()
-
+	go populateList()
 }

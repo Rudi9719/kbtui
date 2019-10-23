@@ -92,4 +92,5 @@ func loadFromToml() {
 	if config.Has("Formatting.timeFormat") {
 		timeFormat = config.Get("Formatting.timeFormat").(string)
 	}
+	RunCommand("clean")
 }
