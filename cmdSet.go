@@ -23,7 +23,6 @@ func printSetting(cmd []string) {
 	switch cmd[1] {
 	case "load":
 		loadFromToml()
-		printToView("Feed", fmt.Sprintf("Loading config from toml"))
 	case "downloadPath":
 		printToView("Feed", fmt.Sprintf("Setting for %s -> %s", cmd[1], downloadPath))
 	case "outputFormat":
@@ -47,6 +46,7 @@ func cmdSet(cmd []string) {
 	}
 	if len(cmd) < 3 {
 		printSetting(cmd)
+		return
 	}
 	switch cmd[1] {
 	case "downloadPath":
@@ -68,6 +68,7 @@ func cmdSet(cmd []string) {
 
 }
 func loadFromToml() {
+	printToView("Feed", fmt.Sprintf("Loading config from toml"))
 	config, err := toml.LoadFile("kbtui.tml")
 	if err != nil {
 		printToView("Feed", fmt.Sprintf("Could not read config file: %+v", err))
