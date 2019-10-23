@@ -3,12 +3,9 @@ package main
 import (
 	"regexp"
 	"strconv"
-	"strings"
 )
 
-// this is a global var set by flag that indicates whether emoji shortnames should be reprinted as unicode emojis
-// some systems may support this
-var UNICODE_EMOJI_SUPPORT bool = false
+var UNICODE_EMOJI_SUPPORT bool
 
 type emojiData struct {
 	Name        string
@@ -17,49 +14,35 @@ type emojiData struct {
 	Alias       []string
 }
 
-// this converts shortname emojis to unicode emojis when they can be found in the data map
 func emojiUnicodeConvert(s string) string {
-	// currently fails to find newlines and replace them needs fixed
-	pStr := strings.Fields(s)
-	reeMatch := regexp.MustCompile(`:\w+:`)
-	for i, word := range pStr {
-		if matched := reeMatch.MatchString(word); matched {
-			// renders a unicode emoji instead of the name
-			if temp, ok := emojiMap[word]; ok {
-				emj, err := renderUnicodeEmoji(temp)
-				if err == nil {
-					pStr[i] = emj
-				} // else don't do anything to the string
-			}
-		}
-	}
-	return strings.Join(pStr, " ")
+	re := regexp.MustCompile(`:\w+:`)
+	return re.ReplaceAllStringFunc(s, renderUnicodeEmoji)
 }
 
-// this resolves emoji aliases back to the root emoji that actually renders to a picture
-// for example `:cheeseburger:` => `:hamburger:`
 func resolveRootEmojis(s string) string {
-	pStr := strings.Fields(s)
-	reMatch := regexp.MustCompile(`:\w+:`)
-	for i, word := range pStr {
-		if matched := reMatch.MatchString(word); matched {
-			// resolves the real emoji in case they typed an alias
-			if temp, ok := emojiMap[word]; ok {
-				pStr[i] = temp.Name
-			}
-		}
-	}
-	return strings.Join(pStr, " ")
+	re := regexp.MustCompile(`:\w+:`)
+	return re.ReplaceAllStringFunc(s, emojiRootLookup)
 }
 
-// this is the actual internal function that parses the unicode data to a unicode string representing the emoji
-func renderUnicodeEmoji(data emojiData) (string, error) {
-	emj, err := strconv.ParseInt(data.Unicode, 16, 32)
-	if err != nil {
-		// because not all of them are parseable (like keycaps \u0031-FE0F-20E3)
-		return "", err
+func emojiRootLookup(s string) string {
+	if temp, ok := emojiMap[s]; ok {
+		return temp.Name
 	} else {
-		return string(emj), err
+		return s
+	}
+}
+
+func renderUnicodeEmoji(source string) string {
+	if data, ok := emojiMap[source]; ok {
+		emj, err := strconv.ParseInt(data.Unicode, 16, 32)
+		if err != nil {
+			// because not all of them are parseable (like keycaps \u0031-FE0F-20E3)
+			return source
+		} else {
+			return string(emj)
+		}
+	} else {
+		return source
 	}
 }
 
