@@ -24,16 +24,29 @@ func cmdDownloadFile(cmd []string) {
 		printToView("Feed", fmt.Sprintf("%s%s $messageId $fileName - Download a file to user's downloadpath", cmdPrefix, cmd[0]))
 		return
 	}
-	messageID, _ := strconv.Atoi(cmd[1])
+	messageID, err := strconv.Atoi(cmd[1])
+	if err != nil {
+		printToView("Feed", "There was an error converting your messageID to an int")
+		return
+	}
+	chat := k.NewChat(channel)
+	api, err := chat.ReadMessage(messageID)
+	if err != nil {
+		printToView("Feed", fmt.Sprintf("There was an error pulling message %d", messageID))
+		return
+	}
+	if api.Result.Messages[0].Msg.Content.Type != "attachment" {
+		printToView("Feed", "No attachment detected")
+		return
+	}
 	var fileName string
 	if len(cmd) == 3 {
 		fileName = cmd[2]
 	} else {
-		fileName = ""
+		fileName = api.Result.Messages[0].Msg.Content.Attachment.Object.Filename
 	}
 
-	chat := k.NewChat(channel)
-	_, err := chat.Download(messageID, fmt.Sprintf("%s/%s", downloadPath, fileName))
+	_, err = chat.Download(messageID, fmt.Sprintf("%s/%s", downloadPath, fileName))
 	if err != nil {
 		printToView("Feed", fmt.Sprintf("There was an error downloading %s from %s", fileName, channel.Name))
 	} else {

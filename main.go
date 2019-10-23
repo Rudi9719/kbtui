@@ -112,9 +112,8 @@ func initKeybindings() error {
 			if input != "" {
 				clearView("Input")
 				return nil
-			} else {
-				return gocui.ErrQuit
 			}
+			return gocui.ErrQuit
 		}); err != nil {
 		return err
 	}
@@ -166,9 +165,8 @@ func setViewTitle(viewName string, title string) {
 		updatingView, err := g.View(viewName)
 		if err != nil {
 			return err
-		} else {
-			updatingView.Title = title
 		}
+		updatingView.Title = title
 		return nil
 	})
 }
@@ -178,9 +176,9 @@ func getViewTitle(viewName string) string {
 		// in case there is active tab completion, filter that to just the view title and not the completion options.
 		printToView("Feed", fmt.Sprintf("Error getting view title: %s", err))
 		return ""
-	} else {
-		return strings.Split(view.Title, "||")[0]
 	}
+	return strings.Split(view.Title, "||")[0]
+
 }
 func popupView(viewName string) {
 	_, err := g.SetCurrentView(viewName)
@@ -195,10 +193,27 @@ func popupView(viewName string) {
 		updatingView, err := g.View(viewName)
 		if err != nil {
 			return err
-		} else {
-			viewX, viewY := updatingView.Size()
-			updatingView.MoveCursor(viewX, viewY, true)
 		}
+		updatingView.MoveCursor(0, 0, true)
+
+		return nil
+
+	})
+}
+func moveCursorToEnd(viewName string) {
+	g.Update(func(g *gocui.Gui) error {
+		inputView, err := g.View(viewName)
+		if err != nil {
+			return err
+		}
+		inputString, _ := getInputString(viewName)
+		stringLen := len(inputString)
+		maxX, _ := inputView.Size()
+		x := stringLen % maxX
+		y := stringLen / maxX
+		inputView.SetCursor(0, 0)
+		inputView.SetOrigin(0, 0)
+		inputView.MoveCursor(x, y, true)
 		return nil
 
 	})
@@ -208,11 +223,11 @@ func clearView(viewName string) {
 		inputView, err := g.View(viewName)
 		if err != nil {
 			return err
-		} else {
-			inputView.Clear()
-			inputView.SetCursor(0, 0)
-			inputView.SetOrigin(0, 0)
 		}
+		inputView.Clear()
+		inputView.SetCursor(0, 0)
+		inputView.SetOrigin(0, 0)
+
 		return nil
 	})
 
@@ -222,11 +237,11 @@ func writeToView(viewName string, message string) {
 		updatingView, err := g.View(viewName)
 		if err != nil {
 			return err
-		} else {
-			for _, c := range message {
-				updatingView.EditWrite(c)
-			}
 		}
+		for _, c := range message {
+			updatingView.EditWrite(c)
+		}
+
 		return nil
 	})
 }
@@ -276,11 +291,11 @@ func populateChat() {
 		if err2 != nil {
 			printToView("Feed", fmt.Sprintf("%+v", err))
 			return
-		} else {
-			go populateChat()
-			go generateChannelTabCompletionSlice()
-			return
 		}
+		go populateChat()
+		go generateChannelTabCompletionSlice()
+		return
+
 	}
 	var printMe []string
 	var actuallyPrintMe string
@@ -366,7 +381,7 @@ func formatOutput(api keybase.ChatAPI) string {
 		msg = colorRegex(msg, `(https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*))`, messageLinkColor, messageBodyColor)
 		msg = colorText(colorReplaceMentionMe(msg, messageBodyColor), messageBodyColor, c)
 		if msgType == "attachment" {
-			msg = fmt.Sprintf("%s", colorText("[Attachment]", messageAttachmentColor, c))
+			msg = fmt.Sprintf("%s\n%s", api.Msg.Content.Attachment.Object.Title, colorText(fmt.Sprintf("[Attachment: %s]", api.Msg.Content.Attachment.Object.Filename), messageAttachmentColor, c))
 		}
 		user := colorUsername(api.Msg.Sender.Username, c)
 		device := colorText(api.Msg.Sender.DeviceName, messageSenderDeviceColor, c)
