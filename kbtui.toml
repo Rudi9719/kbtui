@@ -18,7 +18,7 @@ timeFormat = "15:04"
 [Colors]
 	 [Colors.channels]
 		  [Colors.channels.basic]
-		  foreground = "normal" 
+		  foreground = "normal"
 		  [Colors.channels.header]
 		  foreground = "magenta"
 		  bold = true
@@ -28,7 +28,7 @@ timeFormat = "15:04"
 
 	 [Colors.message]
 		  [Colors.message.body]
-		  foreground = "normal" 
+		  foreground = "normal"
 		  [Colors.message.header]
 		  foreground = "grey"
 		  [Colors.message.mention]
@@ -45,11 +45,11 @@ timeFormat = "15:04"
 		  [Colors.message.sender_device]
 		  foreground = "cyan"
 		  [Colors.message.attachment]
-		  foreground = "red" 
+		  foreground = "red"
 		  [Colors.message.link_url]
-		  foreground = "yellow" 
+		  foreground = "yellow"
 		  [Colors.message.link_keybase]
-		  foreground = "yellow" 
+		  foreground = "yellow"
 		  [Colors.message.reaction]
 		  foreground = "magenta"
 		  bold = true
