@@ -69,7 +69,11 @@ func cmdSet(cmd []string) {
 func loadFromToml() {
 	configFile, env := os.LookupEnv("KBTUI_CFG")
 	if !env {
-		configFile = "kbtui.toml"
+		configFile = "~/.config/kbtui.toml"
+		if _, err := os.Stat(configFile); os.IsNotExist(err) {
+			configFile = "kbtui.toml"
+		}
+
 	}
 	printInfoF("Loading config from toml: $TEXT", messageAttachmentColor.stylize(configFile))
 	config, err := toml.LoadFile(configFile)
