@@ -24,7 +24,6 @@ func printSetting(cmd []string) {
 	switch cmd[1] {
 	case "load":
 		loadFromToml()
-		printInfo("Loading config from toml")
 	case "downloadPath":
 		printInfo(fmt.Sprintf("Setting for %s -> %s", cmd[1], downloadPath))
 	case "outputFormat":
@@ -72,7 +71,7 @@ func loadFromToml() {
 	if !env {
 		configFile = "kbtui.toml"
 	}
-
+	printInfoF("Loading config from toml: $TEXT", messageAttachmentColor.stylize(configFile))
 	config, err := toml.LoadFile(configFile)
 	if err != nil {
 		printError(fmt.Sprintf("Could not read config file: %+v", err))
