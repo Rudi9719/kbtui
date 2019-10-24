@@ -37,6 +37,7 @@ func main() {
 	}
 	defer g.Close()
 	g.SetManagerFunc(layout)
+	go RunCommand("config", "load")
 	go populateList()
 	go updateChatWindow()
 	if len(os.Args) > 1 {
