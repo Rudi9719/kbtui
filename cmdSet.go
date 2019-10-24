@@ -4,6 +4,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/pelletier/go-toml"
@@ -67,7 +68,12 @@ func cmdSet(cmd []string) {
 
 }
 func loadFromToml() {
-	config, err := toml.LoadFile("kbtui.tml")
+	configFile, env := os.LookupEnv("KBTUI_CFG")
+	if !env {
+		configFile = "kbtui.toml"
+	}
+
+	config, err := toml.LoadFile(configFile)
 	if err != nil {
 		printError(fmt.Sprintf("Could not read config file: %+v", err))
 		return
