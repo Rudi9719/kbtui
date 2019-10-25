@@ -195,22 +195,23 @@ func (t StyledString) replaceString(match string, value string) StyledString {
 	t.message = strings.Replace(t.message, match, value, -1)
 	return t
 }
-func (t StyledString) replaceRegex(match string, value StyledString) StyledString {
-	var re = regexp.MustCompile("(" + match + ")")
-	t.message = re.ReplaceAllString(t.message, value.stringFollowedByStyle(t.style))
-	return t
-}
 
 // Overrides current formatting
 func (t StyledString) colorRegex(match string, style Style) StyledString {
 	re := regexp.MustCompile("(" + match + ")")
-	subStrings := re.FindAllString(t.message, -1)
-	for _, element := range subStrings {
-		cleanSubstring := style.stylize(removeFormatting(element))
-		t.message = strings.Replace(t.message, element, cleanSubstring.stringFollowedByStyle(t.style), -1)
+	locations := re.FindAllStringIndex(t.message, -1)
+	var newMessage string
+	var prevIndex int
+	for _, loc := range locations {
+		cleanSubstring := style.stylize(removeFormatting(string(t.message[loc[0]:loc[1]])))
+		newMessage += t.message[prevIndex:loc[0]]
+		newMessage += cleanSubstring.stringFollowedByStyle(t.style)
+		prevIndex = loc[1]
 	}
+	// Append any string after the final match
+	newMessage += t.message[prevIndex:len(t.message)]
+	t.message = newMessage
 	return t
-	// Old versionreturn t.replaceRegex(match, style.stylize(`$1`))
 }
 
 // Appends the other stylize at the end, but retains same style

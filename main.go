@@ -407,7 +407,7 @@ func formatChannel(ch keybase.Channel) StyledString {
 }
 
 func colorReplaceMentionMe(msg StyledString) StyledString {
-	return msg.colorRegex("(@?"+k.Username+")", mentionColor)
+	return msg.colorRegex(`(@?\b`+k.Username+`\b)`, mentionColor)
 }
 func colorUsername(username string) StyledString {
 	var color = messageSenderDefaultColor
