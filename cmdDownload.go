@@ -21,7 +21,7 @@ func init() {
 func cmdDownloadFile(cmd []string) {
 
 	if len(cmd) < 2 {
-		printInfo(fmt.Sprintf("%s%s $messageId $fileName - Download a file to user's downloadpath", cmdPrefix, cmd[0]))
+		printInfo(fmt.Sprintf("%s%s $messageId $fileName - Download a file to user's downloadpath", config.Basics.CmdPrefix, cmd[0]))
 		return
 	}
 	messageID, err := strconv.Atoi(cmd[1])
@@ -46,8 +46,8 @@ func cmdDownloadFile(cmd []string) {
 		fileName = api.Result.Messages[0].Msg.Content.Attachment.Object.Filename
 	}
 
-	_, err = chat.Download(messageID, fmt.Sprintf("%s/%s", downloadPath, fileName))
-	channelName := messageLinkKeybaseColor.stylize(channel.Name)
+	_, err = chat.Download(messageID, fmt.Sprintf("%s/%s", config.Basics.DownloadPath, fileName))
+	channelName := config.Colors.Message.LinkKeybase.stylize(channel.Name)
 	if err != nil {
 		printErrorF(fmt.Sprintf("There was an error downloading %s from $TEXT", fileName), channelName)
 	} else {
