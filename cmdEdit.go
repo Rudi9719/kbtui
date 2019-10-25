@@ -26,6 +26,8 @@ func cmdEdit(cmd []string) {
 		if len(cmd) == 2 {
 			messageID, _ = strconv.Atoi(cmd[1])
 		} else if lastMessage.ID != 0 {
+			message, _ := chat.ReadMessage(lastMessage.ID)
+			lastMessage.Type = message.Result.Messages[0].Msg.Content.Type
 			if lastMessage.Type != "text" {
 				printError("Last message isn't editable (is it an edit?)")
 				return
