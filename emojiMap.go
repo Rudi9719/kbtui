@@ -15,12 +15,12 @@ type emojiData struct {
 }
 
 func emojiUnicodeConvert(s string) string {
-	re := regexp.MustCompile(`:\w+:`)
+	re := regexp.MustCompile(`:(\w+|([+-]\d)):`)
 	return re.ReplaceAllStringFunc(s, renderUnicodeEmoji)
 }
 
 func resolveRootEmojis(s string) string {
-	re := regexp.MustCompile(`:\w+:`)
+	re := regexp.MustCompile(`:(\w+|([+-]\d)):`)
 	return re.ReplaceAllStringFunc(s, emojiRootLookup)
 }
 
