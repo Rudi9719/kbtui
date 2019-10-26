@@ -73,13 +73,15 @@ func loadFromToml() {
 		if _, err := os.Stat(configFile); os.IsNotExist(err) {
 			configFile = "kbtui.toml"
 		}
-
 	}
 	printInfoF("Loading config from toml: $TEXT", messageAttachmentColor.stylize(configFile))
 	config, err := toml.LoadFile(configFile)
 	if err != nil {
-		printError(fmt.Sprintf("Could not read config file: %+v", err))
+		printError(fmt.Sprintf("I Could not read config file: %+v", err))
 		return
+	}
+	if config.Has("Emoji.unicodeSupport") {
+		UNICODE_EMOJI_SUPPORT = config.Get("Emoji.unicodeSupport").(bool)
 	}
 	colorless = config.GetDefault("Basics.colorless", false).(bool)
 	if config.Has("Basics.colorless") {
