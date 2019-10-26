@@ -38,6 +38,6 @@ func doReact(messageID int, reaction string) {
 	chat := k.NewChat(channel)
 	_, err := chat.React(messageID, reaction)
 	if err != nil {
-		printToView("Feed", "There was an error reacting to the message.")
+		printError("There was an error reacting to the message.")
 	}
 }

@@ -37,6 +37,7 @@ func main() {
 	}
 	defer g.Close()
 	g.SetManagerFunc(layout)
+	go RunCommand("config", "load")
 	go populateList()
 	go updateChatWindow()
 	// use flag to parse command line arguments
@@ -70,7 +71,7 @@ func layout(g *gocui.Gui) error {
 		feedView.Autoscroll = true
 		feedView.Wrap = true
 		feedView.Title = "Feed Window"
-		fmt.Fprintln(feedView, "Feed Window - If you are mentioned or receive a PM it will show here")
+		printInfo("Feed Window - If you are mentioned or receive a PM it will show here")
 	}
 	if chatView, err2 := g.SetView("Chat", maxX/2-maxX/3, maxY/5+1, maxX-1, maxY-5, 0); err2 != nil {
 		if !gocui.IsUnknownView(err2) {
@@ -78,7 +79,9 @@ func layout(g *gocui.Gui) error {
 		}
 		chatView.Autoscroll = true
 		chatView.Wrap = true
-		fmt.Fprintf(chatView, "Welcome %s!\n\nYour chats will appear here.\nSupported commands are as follows:\n\n", k.Username)
+		welcomeText := basicStyle.stylize("Welcome $USER!\n\nYour chats will appear here.\nSupported commands are as follows:\n")
+		welcomeText = welcomeText.replace("$USER", mentionColor.stylize(k.Username))
+		fmt.Fprintln(chatView, welcomeText.string())
 		RunCommand("help")
 	}
 	if inputView, err3 := g.SetView("Input", maxX/2-maxX/3, maxY-4, maxX-1, maxY-1, 0); err3 != nil {
@@ -174,20 +177,19 @@ func getViewTitle(viewName string) string {
 	view, err := g.View(viewName)
 	if err != nil {
 		// in case there is active tab completion, filter that to just the view title and not the completion options.
-		printToView("Feed", fmt.Sprintf("Error getting view title: %s", err))
+		printError(fmt.Sprintf("Error getting view title: %s", err))
 		return ""
 	}
 	return strings.Split(view.Title, "||")[0]
-
 }
 func popupView(viewName string) {
 	_, err := g.SetCurrentView(viewName)
 	if err != nil {
-		printToView("Feed", fmt.Sprintf("%+v", err))
+		printError(fmt.Sprintf("%+v", err))
 	}
 	_, err = g.SetViewOnTop(viewName)
 	if err != nil {
-		printToView("Feed", fmt.Sprintf("%+v", err))
+		printError(fmt.Sprintf("%+v", err))
 	}
 	g.Update(func(g *gocui.Gui) error {
 		updatingView, err := g.View(viewName)
@@ -245,6 +247,24 @@ func writeToView(viewName string, message string) {
 		return nil
 	})
 }
+
+// this removes formatting
+func printError(message string) {
+	printErrorF(message)
+}
+func printErrorF(message string, parts ...StyledString) {
+	printToView("Feed", errorColor.sprintf(removeFormatting(message), parts...).string())
+}
+
+// this removes formatting
+func printInfo(message string) {
+	printInfoF(message)
+}
+
+// this removes formatting
+func printInfoF(message string, parts ...StyledString) {
+	printToView("Feed", feedColor.sprintf(removeFormatting(message), parts...).string())
+}
 func printToView(viewName string, message string) {
 	g.Update(func(g *gocui.Gui) error {
 		updatingView, err := g.View(viewName)
@@ -289,13 +309,12 @@ func populateChat() {
 		chat = k.NewChat(channel)
 		_, err2 := chat.Read(2)
 		if err2 != nil {
-			printToView("Feed", fmt.Sprintf("%+v", err))
+			printError(fmt.Sprintf("%+v", err))
 			return
 		}
 		go populateChat()
 		go generateChannelTabCompletionSlice()
 		return
-
 	}
 	var printMe []string
 	var actuallyPrintMe string
@@ -327,75 +346,122 @@ func populateList() {
 	if testVar, err := k.ChatList(); err != nil {
 		log.Printf("%+v", err)
 	} else {
-
 		clearView("List")
-		var recentPMs = fmt.Sprintf("%s---[PMs]---%s\n", channelsHeaderColor, channelsColor)
+		var textBase = channelsColor.stylize("")
+		var recentPMs = textBase.append(channelsHeaderColor.stylize("---[PMs]---\n"))
 		var recentPMsCount = 0
-		var recentChannels = fmt.Sprintf("%s---[Teams]---%s\n", channelsHeaderColor, channelsColor)
+		var recentChannels = textBase.append(channelsHeaderColor.stylize("---[Teams]---\n"))
 		var recentChannelsCount = 0
 		for _, s := range testVar.Result.Conversations {
 			channels = append(channels, s.Channel)
 			if s.Channel.MembersType == keybase.TEAM {
 				recentChannelsCount++
 				if recentChannelsCount <= ((maxY - 2) / 3) {
+					channel := fmt.Sprintf("%s\n\t#%s\n", s.Channel.Name, s.Channel.TopicName)
 					if s.Unread {
-						recentChannels += fmt.Sprintf("%s*", color(0))
+						recentChannels = recentChannels.append(channelUnreadColor.stylize("*" + channel))
+					} else {
+						recentChannels = recentChannels.appendString(channel)
 					}
-					recentChannels += fmt.Sprintf("%s\n\t#%s\n%s", s.Channel.Name, s.Channel.TopicName, channelsColor)
 				}
 			} else {
 				recentPMsCount++
 				if recentPMsCount <= ((maxY - 2) / 3) {
+					pmName := fmt.Sprintf("%s\n", cleanChannelName(s.Channel.Name))
 					if s.Unread {
-						recentChannels += fmt.Sprintf("%s*", color(0))
+						recentPMs = recentPMs.append(channelUnreadColor.stylize("*" + pmName))
+					} else {
+						recentPMs = recentPMs.appendString(pmName)
 					}
-					recentPMs += fmt.Sprintf("%s\n%s", cleanChannelName(s.Channel.Name), channelsColor)
 				}
 			}
 		}
 		time.Sleep(1 * time.Millisecond)
-		printToView("List", fmt.Sprintf("%s%s%s%s", channelsColor, recentPMs, recentChannels, noColor))
-		go generateRecentTabCompletionSlice()
+		printToView("List", fmt.Sprintf("%s%s", recentPMs.string(), recentChannels.string()))
+		generateRecentTabCompletionSlice()
 	}
 }
 
 // End update/populate views automatically
 
 // Formatting
+func formatMessageBody(body string) StyledString {
+	output := messageBodyColor.stylize(body)
+
+	output = colorReplaceMentionMe(output)
+	output = output.colorRegex(`_[^_]*_`, messageBodyColor.withItalic())
+	output = output.colorRegex(`~[^~]*~`, messageBodyColor.withStrikethrough())
+	output = output.colorRegex(`@[\w_]*(\.[\w_]+)*`, messageLinkKeybaseColor)
+	// TODO change how bold, italic etc works, so it uses boldOn boldOff ([1m and [22m)
+	output = output.colorRegex(`\*[^\*]*\*`, messageBodyColor.withBold())
+	output = output.replaceString("```", "<code>")
+	// TODO make background color cover whole line
+	output = output.colorRegex("<code>(.*\n)*<code>", messageCodeColor)
+	output = output.colorRegex("`[^`]*`", messageCodeColor)
+	// mention URL
+	output = output.colorRegex(`(https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*))`, messageLinkURLColor)
+	return output
+}
+
+// TODO use this more
+func formatChannel(ch keybase.Channel) StyledString {
+	return messageLinkKeybaseColor.stylize(fmt.Sprintf("@%s#%s", ch.Name, ch.TopicName))
+}
+
+func colorReplaceMentionMe(msg StyledString) StyledString {
+	return msg.colorRegex(`(@?\b`+k.Username+`\b)`, mentionColor)
+}
+func colorUsername(username string) StyledString {
+	var color = messageSenderDefaultColor
+	if username == k.Username {
+		color = mentionColor
+	}
+	return color.stylize(username)
+}
+
 func cleanChannelName(c string) string {
 	newChannelName := strings.Replace(c, fmt.Sprintf("%s,", k.Username), "", 1)
 	return strings.Replace(newChannelName, fmt.Sprintf(",%s", k.Username), "", 1)
 }
-func formatOutput(api keybase.ChatAPI) string {
-	ret := ""
+
+func formatMessage(api keybase.ChatAPI, formatString string) string {
+	ret := messageHeaderColor.stylize("")
 	msgType := api.Msg.Content.Type
 	switch msgType {
 	case "text", "attachment":
-		var c = messageHeaderColor
-		ret = colorText(outputFormat, c, noColor)
+		ret = messageHeaderColor.stylize(formatString)
 		tm := time.Unix(int64(api.Msg.SentAt), 0)
-		var msg = api.Msg.Content.Text.Body
-		// mention teams or users
-		msg = colorRegex(msg, `(@\w*(\.\w+)*)`, messageLinkColor, messageBodyColor)
-		// mention URL
-		msg = colorRegex(msg, `(https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*))`, messageLinkColor, messageBodyColor)
-		msg = colorText(colorReplaceMentionMe(msg, messageBodyColor), messageBodyColor, c)
+		var msg = formatMessageBody(api.Msg.Content.Text.Body)
 		if msgType == "attachment" {
-			msg = fmt.Sprintf("%s\n%s", api.Msg.Content.Attachment.Object.Title, colorText(fmt.Sprintf("[Attachment: %s]", api.Msg.Content.Attachment.Object.Filename), messageAttachmentColor, c))
+			msg = messageBodyColor.stylize("$TITLE\n$FILE")
+			attachment := api.Msg.Content.Attachment
+			msg = msg.replaceString("$TITLE", attachment.Object.Title)
+			msg = msg.replace("$FILE", messageAttachmentColor.stylize(fmt.Sprintf("[Attachment: %s]", attachment.Object.Filename)))
 		}
-		user := colorUsername(api.Msg.Sender.Username, c)
-		device := colorText(api.Msg.Sender.DeviceName, messageSenderDeviceColor, c)
-		msgID := colorText(fmt.Sprintf("%d", api.Msg.ID), messageIdColor, c)
-		ts := colorText(tm.Format(timeFormat), messageTimeColor, c)
-		ret = strings.Replace(ret, "$MSG", msg, 1)
-		ret = strings.Replace(ret, "$USER", user, 1)
-		ret = strings.Replace(ret, "$DEVICE", device, 1)
-		ret = strings.Replace(ret, "$ID", msgID, 1)
-		ret = strings.Replace(ret, "$TIME", ts, 1)
-		ret = strings.Replace(ret, "$DATE", colorText(tm.Format(dateFormat), messageTimeColor, c), 1)
-		ret = strings.Replace(ret, "```", fmt.Sprintf("\n<code>\n"), -1)
+
+		user := colorUsername(api.Msg.Sender.Username)
+		device := messageSenderDeviceColor.stylize(api.Msg.Sender.DeviceName)
+		msgID := messageIDColor.stylize(fmt.Sprintf("%d", api.Msg.ID))
+		date := messageTimeColor.stylize(tm.Format(dateFormat))
+		msgTime := messageTimeColor.stylize(tm.Format(timeFormat))
+
+		channelName := messageIDColor.stylize(fmt.Sprintf("@%s#%s", api.Msg.Channel.Name, api.Msg.Channel.TopicName))
+		ret = ret.replace("$MSG", msg)
+		ret = ret.replace("$USER", user)
+		ret = ret.replace("$DEVICE", device)
+		ret = ret.replace("$ID", msgID)
+		ret = ret.replace("$TIME", msgTime)
+		ret = ret.replace("$DATE", date)
+		ret = ret.replace("$TEAM", channelName)
 	}
-	return ret
+	return ret.string()
+}
+func formatOutput(api keybase.ChatAPI) string {
+	format := outputFormat
+	if stream {
+		format = outputStreamFormat
+	}
+	return formatMessage(api, format)
 }
 
 // End formatting
@@ -412,9 +478,7 @@ func handleMessage(api keybase.ChatAPI) {
 	}
 	if api.Msg.Content.Type == "text" || api.Msg.Content.Type == "attachment" {
 		go populateList()
-		msgBody := api.Msg.Content.Text.Body
 		msgSender := api.Msg.Sender.Username
-		channelName := api.Msg.Channel.Name
 		if !stream {
 			if msgSender != k.Username {
 				if api.Msg.Channel.MembersType == keybase.TEAM {
@@ -423,7 +487,7 @@ func handleMessage(api keybase.ChatAPI) {
 						if m.Text == k.Username {
 							// We are in a team
 							if topicName != channel.TopicName {
-								printToView("Feed", fmt.Sprintf("[ %s#%s ] %s: %s", channelName, topicName, msgSender, msgBody))
+								printInfo(formatMessage(api, mentionFormat))
 								fmt.Print("\a")
 							}
 
@@ -432,7 +496,7 @@ func handleMessage(api keybase.ChatAPI) {
 					}
 				} else {
 					if msgSender != channel.Name {
-						printToView("Feed", fmt.Sprintf("PM from @%s: %s", cleanChannelName(channelName), msgBody))
+						printInfo(formatMessage(api, pmFormat))
 						fmt.Print("\a")
 					}
 
@@ -448,10 +512,9 @@ func handleMessage(api keybase.ChatAPI) {
 			}
 		} else {
 			if api.Msg.Channel.MembersType == keybase.TEAM {
-				topicName := api.Msg.Channel.TopicName
-				printToView("Chat", fmt.Sprintf("@%s#%s [%s]: %s", channelName, topicName, msgSender, msgBody))
+				printToView("Chat", formatOutput(api))
 			} else {
-				printToView("Chat", fmt.Sprintf("PM @%s [%s]: %s", cleanChannelName(channelName), msgSender, msgBody))
+				printToView("Chat", formatMessage(api, pmFormat))
 			}
 		}
 	} else {
@@ -496,7 +559,7 @@ func handleInput(viewName string) error {
 		} else if cmd[0] == "q" || cmd[0] == "quit" {
 			return gocui.ErrQuit
 		} else {
-			printToView("Feed", fmt.Sprintf("Command '%s' not recognized", cmd[0]))
+			printError(fmt.Sprintf("Command '%s' not recognized", cmd[0]))
 			return nil
 		}
 	}
@@ -520,7 +583,7 @@ func sendChat(message string) {
 	chat := k.NewChat(channel)
 	_, err := chat.Send(message)
 	if err != nil {
-		printToView("Feed", fmt.Sprintf("There was an error %+v", err))
+		printError(fmt.Sprintf("There was an error %+v", err))
 	}
 }
 

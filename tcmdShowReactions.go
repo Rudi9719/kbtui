@@ -20,15 +20,17 @@ func init() {
 }
 
 func tcmdShowReactions(m keybase.ChatAPI) {
-	where := ""
 	team := false
+	user := colorUsername(m.Msg.Sender.Username)
+	id := messageIDColor.stylize(fmt.Sprintf("%d", m.Msg.Content.Reaction.M))
+	reaction := messageReactionColor.stylize(m.Msg.Content.Reaction.B)
+	where := messageLinkKeybaseColor.stylize("a PM")
 	if m.Msg.Channel.MembersType == keybase.TEAM {
 		team = true
-		where = fmt.Sprintf("in @%s#%s", m.Msg.Channel.Name, m.Msg.Channel.TopicName)
+		where = formatChannel(m.Msg.Channel)
 	} else {
-		where = fmt.Sprintf("in a PM")
 	}
-	printToView("Feed", fmt.Sprintf("%s reacted to %d with %s %s", m.Msg.Sender.Username, m.Msg.Content.Reaction.M, m.Msg.Content.Reaction.B, where))
+	printInfoF("$TEXT reacted to [$TEXT] with $TEXT in $TEXT", user, id, reaction, where)
 	if channel.Name == m.Msg.Channel.Name {
 		if team {
 			if channel.TopicName == m.Msg.Channel.TopicName {
