@@ -77,7 +77,7 @@ func loadFromToml() {
 	printInfoF("Loading config from toml: $TEXT", messageAttachmentColor.stylize(configFile))
 	config, err := toml.LoadFile(configFile)
 	if err != nil {
-		printError(fmt.Sprintf("I Could not read config file: %+v", err))
+		printError(fmt.Sprintf("Could not read config file: %+v", err))
 		return
 	}
 	if config.Has("Emoji.unicodeSupport") {
