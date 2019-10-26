@@ -272,8 +272,12 @@ func printToView(viewName string, message string) {
 		updatingView, err := g.View(viewName)
 		if err != nil {
 			return err
+		} else {
+			if UNICODE_EMOJI_SUPPORT {
+				message = emojiUnicodeConvert(message)
+			}
+			fmt.Fprintf(updatingView, "%s\n", message)
 		}
-		fmt.Fprintf(updatingView, "%s\n", message)
 		return nil
 	})
 }
@@ -566,6 +570,7 @@ func handleInput(viewName string) error {
 		cmd[0] = inputString[:1]
 		RunCommand(cmd...)
 	} else {
+		inputString = resolveRootEmojis(inputString)
 		go sendChat(inputString)
 	}
 	// restore any tab completion view titles on input commit
