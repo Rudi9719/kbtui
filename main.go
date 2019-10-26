@@ -1,9 +1,9 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"log"
+	"os"
 	"strings"
 	"time"
 
@@ -40,9 +40,11 @@ func main() {
 	go RunCommand("config", "load")
 	go populateList()
 	go updateChatWindow()
-	// use flag to parse command line arguments
-	flag.BoolVar(&UNICODE_EMOJI_SUPPORT, "ucode-emoji", false, "Enables unicode emoji printing to screen for supported systems")
-	flag.Parse()
+	if len(os.Args) > 1 {
+		os.Args[0] = "join"
+		RunCommand(os.Args...)
+
+	}
 	fmt.Println("initKeybindings")
 	if err := initKeybindings(); err != nil {
 		fmt.Printf("%+v", err)
@@ -270,12 +272,8 @@ func printToView(viewName string, message string) {
 		updatingView, err := g.View(viewName)
 		if err != nil {
 			return err
-		} else {
-			if UNICODE_EMOJI_SUPPORT {
-				message = emojiUnicodeConvert(message)
-			}
-			fmt.Fprintf(updatingView, "%s\n", message)
 		}
+		fmt.Fprintf(updatingView, "%s\n", message)
 		return nil
 	})
 }
@@ -545,10 +543,6 @@ func deleteEmpty(s []string) []string {
 func handleInput(viewName string) error {
 	clearView(viewName)
 	inputString, _ := getInputString(viewName)
-	if newViewTitle := getViewTitle(viewName); newViewTitle != "" {
-		// restore any tab completion view titles on input commit
-		setViewTitle(viewName, newViewTitle)
-	}
 	if inputString == "" {
 		return nil
 	}
@@ -572,8 +566,11 @@ func handleInput(viewName string) error {
 		cmd[0] = inputString[:1]
 		RunCommand(cmd...)
 	} else {
-		inputString = resolveRootEmojis(inputString)
 		go sendChat(inputString)
+	}
+	// restore any tab completion view titles on input commit
+	if newViewTitle := getViewTitle(viewName); newViewTitle != "" {
+		setViewTitle(viewName, newViewTitle)
 	}
 
 	go populateList()
