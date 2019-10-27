@@ -28,9 +28,10 @@ type Config struct {
 
 // Basics holds the 'basics' section of the config file
 type Basics struct {
-	DownloadPath string `toml:"download_path"`
-	Colorless    bool   `toml:"colorless"`
-	CmdPrefix    string `toml:"cmd_prefix"`
+	DownloadPath  string `toml:"download_path"`
+	Colorless     bool   `toml:"colorless"`
+	CmdPrefix     string `toml:"cmd_prefix"`
+	UnicodeEmojis bool   `toml:"unicode_emojis"`
 }
 
 // Formatting holds the 'formatting' section of the config file

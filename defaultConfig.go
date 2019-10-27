@@ -4,6 +4,7 @@ var defaultConfig = `
 [basics]
 download_path = "/tmp/"
 colorless = false
+unicode_emojis = true
 
 # The prefix before evaluating a command
 cmd_prefix = "/"
