@@ -1,21 +1,22 @@
 [basics]
-downloadPath = "/tmp/"
+download_path = "/tmp/"
 colorless = false
+
 # The prefix before evaluating a command
-cmdPrefix = "/"
+cmd_prefix = "/"
 
 [formatting]
 # BASH-like PS1 variable equivalent
-outputFormat = "┌──[$USER@$DEVICE] [$ID] [$DATE - $TIME]\n└╼ $MSG"
-outputStreamFormat = "┌──[$USER@$DEVICE] [$ID] [$DATE - $TIME]\n└╼ $MSG"
-outputMentionFormat = "┌──[$USER@$DEVICE] [$ID] [$DATE - $TIME]\n└╼ $MSG"
-pmFormat = "PM from $USER@$DEVICE: $MSG"
+output_format = "┌──[$USER@$DEVICE] [$ID] [$DATE - $TIME]\n└╼ $MSG"
+output_stream_format = "┌──[$USER@$DEVICE] [$ID] [$DATE - $TIME]\n└╼ $MSG"
+output_mention_format = "┌──[$USER@$DEVICE] [$ID] [$DATE - $TIME]\n└╼ $MSG"
+pm_format = "PM from $USER@$DEVICE: $MSG"
 
 # 02 = Day, Jan = Month, 06 = Year
-dateFormat = "02Jan06"
+date_format = "02Jan06"
 
 # 15 = hours, 04 = minutes, 05 = seconds
-timeFormat = "15:04"
+time_format = "15:04"
 
 
 [colors]
