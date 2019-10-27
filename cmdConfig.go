@@ -53,6 +53,10 @@ func readConfig(filepath ...string) (*Config, error) {
 	var configFile string
 	var env bool
 
+	// Load default config first, this way any values missing from the provided config file will remain the default value
+	d := []byte(defaultConfig)
+	toml.Unmarshal(d, result)
+
 	switch len(filepath) {
 	case 0:
 		configFile, env = os.LookupEnv("KBTUI_CFG")
