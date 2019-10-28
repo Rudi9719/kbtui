@@ -545,6 +545,10 @@ func deleteEmpty(s []string) []string {
 func handleInput(viewName string) error {
 	clearView(viewName)
 	inputString, _ := getInputString(viewName)
+	if newViewTitle := getViewTitle(viewName); newViewTitle != "" {
+		// restore any tab completion view titles on input commit
+		setViewTitle(viewName, newViewTitle)
+	}
 	if inputString == "" {
 		return nil
 	}
@@ -569,10 +573,6 @@ func handleInput(viewName string) error {
 		RunCommand(cmd...)
 	} else {
 		go sendChat(inputString)
-	}
-	// restore any tab completion view titles on input commit
-	if newViewTitle := getViewTitle(viewName); newViewTitle != "" {
-		setViewTitle(viewName, newViewTitle)
 	}
 
 	go populateList()
