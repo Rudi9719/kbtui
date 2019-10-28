@@ -65,7 +65,7 @@ func cmdPopulateWall(cmd []string) {
 		return
 	}
 
-	printInfoF("Displaying public messages for user $TEXT", messageLinkKeybaseColor.stylize(requestedUsers))
+	printInfoF("Displaying public messages for user $TEXT", config.Colors.Message.LinkKeybase.stylize(requestedUsers))
 	for _, chann := range users {
 		chat := k.NewChat(chann)
 		api, err := chat.Read()

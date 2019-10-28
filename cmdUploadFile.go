@@ -21,7 +21,7 @@ func init() {
 
 func cmdUploadFile(cmd []string) {
 	if len(cmd) < 2 {
-		printInfo(fmt.Sprintf("%s%s $filePath $fileName - Upload file from absolute path with optional name", cmdPrefix, cmd[0]))
+		printInfo(fmt.Sprintf("%s%s $filePath $fileName - Upload file from absolute path with optional name", config.Basics.CmdPrefix, cmd[0]))
 		return
 	}
 	filePath := cmd[1]
@@ -40,7 +40,7 @@ func cmdUploadFile(cmd []string) {
 	}
 	chat := k.NewChat(channel)
 	_, err := chat.Upload(fileName, filePath)
-	channelName := messageLinkKeybaseColor.stylize(channel.Name).string()
+	channelName := config.Colors.Message.LinkKeybase.stylize(channel.Name).string()
 	if err != nil {
 		printError(fmt.Sprintf("There was an error uploading %s to %s\n%+v", filePath, channelName, err))
 	} else {

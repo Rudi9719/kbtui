@@ -83,7 +83,7 @@ func BuildAllCommands() {
 // Build kbtui with all Commands and TypeCommands enabled.
 func BuildAllCommandsT() {
 	mg.Deps(getRemotePackages)
-	if err := sh.Run("go", "build", "-tags", "type_commands,allcommands"); err != nil {
+	if err := sh.Run("go", "build", "-tags", "type_commands allcommands"); err != nil {
 		defer func() {
 			exit(err)
 		}()
@@ -93,7 +93,7 @@ func BuildAllCommandsT() {
 // Build kbtui with beta functionality
 func BuildBeta() {
 	mg.Deps(getRemotePackages)
-	if err := sh.Run("go", "build", "-tags", "allcommands,showreactionscmd,emojiList,tabcompletion"); err != nil {
+	if err := sh.Run("go", "build", "-tags", "allcommands showreactionscmd emojiList tabcompletion"); err != nil {
 		defer func() {
 			exit(err)
 		}()

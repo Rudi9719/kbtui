@@ -22,6 +22,6 @@ func cmdStream(cmd []string) {
 	channel.Name = ""
 
 	printInfo("You are now viewing the formatted stream")
-	setViewTitle("Input", fmt.Sprintf(" Stream - Not in a chat. %sj to join ", cmdPrefix))
+	setViewTitle("Input", fmt.Sprintf(" Stream - Not in a chat. %sj to join ", config.Basics.CmdPrefix))
 	clearView("Chat")
 }
