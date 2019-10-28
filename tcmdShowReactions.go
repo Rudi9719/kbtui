@@ -22,9 +22,9 @@ func init() {
 func tcmdShowReactions(m keybase.ChatAPI) {
 	team := false
 	user := colorUsername(m.Msg.Sender.Username)
-	id := messageIDColor.stylize(fmt.Sprintf("%d", m.Msg.Content.Reaction.M))
-	reaction := messageReactionColor.stylize(m.Msg.Content.Reaction.B)
-	where := messageLinkKeybaseColor.stylize("a PM")
+	id := config.Colors.Message.ID.stylize(fmt.Sprintf("%d", m.Msg.Content.Reaction.M))
+	reaction := config.Colors.Message.Reaction.stylize(m.Msg.Content.Reaction.B)
+	where := config.Colors.Message.LinkKeybase.stylize("a PM")
 	if m.Msg.Channel.MembersType == keybase.TEAM {
 		team = true
 		where = formatChannel(m.Msg.Channel)

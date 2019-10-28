@@ -25,7 +25,7 @@ func cmdHelp(cmd []string) {
 	if len(cmd) == 1 {
 		sort.Strings(baseCommands)
 		for _, c := range baseCommands {
-			helpText = fmt.Sprintf("%s%s%s\t\t%s\n", helpText, cmdPrefix, c, commands[c].Description)
+			helpText = fmt.Sprintf("%s%s%s\t\t%s\n", helpText, config.Basics.CmdPrefix, c, commands[c].Description)
 		}
 		if len(typeCommands) > 0 {
 			for c := range typeCommands {

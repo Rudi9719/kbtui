@@ -1,3 +1,6 @@
+package main
+
+var defaultConfig = `
 [basics]
 download_path = "/tmp/"
 colorless = false
@@ -66,3 +69,4 @@ time_format = "15:04"
 		  foreground = "grey"
 		  [colors.feed.error]
 		  foreground = "red"
+`

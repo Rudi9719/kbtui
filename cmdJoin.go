@@ -41,12 +41,12 @@ func cmdJoin(cmd []string) {
 			channel.TopicName = ""
 			channel.MembersType = keybase.USER
 		}
-		printInfoF("You are joining: $TEXT", messageLinkKeybaseColor.stylize(joinedName))
+		printInfoF("You are joining: $TEXT", config.Colors.Message.LinkKeybase.stylize(joinedName))
 		clearView("Chat")
 		setViewTitle("Input", fmt.Sprintf(" %s ", joinedName))
 		go populateChat()
 	default:
-		printInfo(fmt.Sprintf("To join a team use %sjoin <team> <channel>", cmdPrefix))
-		printInfo(fmt.Sprintf("To join a PM use %sjoin <user>", cmdPrefix))
+		printInfo(fmt.Sprintf("To join a team use %sjoin <team> <channel>", config.Basics.CmdPrefix))
+		printInfo(fmt.Sprintf("To join a PM use %sjoin <user>", config.Basics.CmdPrefix))
 	}
 }
