@@ -275,7 +275,7 @@ func printToView(viewName string, message string) {
 		if err != nil {
 			return err
 		} else {
-			if UNICODE_EMOJI_SUPPORT {
+			if config.Basics.UnicodeEmojis {
 				message = emojiUnicodeConvert(message)
 			}
 			fmt.Fprintf(updatingView, "%s\n", message)
