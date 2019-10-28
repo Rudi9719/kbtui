@@ -274,8 +274,12 @@ func printToView(viewName string, message string) {
 		updatingView, err := g.View(viewName)
 		if err != nil {
 			return err
+		} else {
+			if config.Basics.UnicodeEmojis {
+				message = emojiUnicodeConvert(message)
+			}
+			fmt.Fprintf(updatingView, "%s\n", message)
 		}
-		fmt.Fprintf(updatingView, "%s\n", message)
 		return nil
 	})
 }
@@ -545,10 +549,6 @@ func deleteEmpty(s []string) []string {
 func handleInput(viewName string) error {
 	clearView(viewName)
 	inputString, _ := getInputString(viewName)
-	if newViewTitle := getViewTitle(viewName); newViewTitle != "" {
-		// restore any tab completion view titles on input commit
-		setViewTitle(viewName, newViewTitle)
-	}
 	if inputString == "" {
 		return nil
 	}
@@ -572,7 +572,12 @@ func handleInput(viewName string) error {
 		cmd[0] = inputString[:1]
 		RunCommand(cmd...)
 	} else {
+		inputString = resolveRootEmojis(inputString)
 		go sendChat(inputString)
+	}
+	// restore any tab completion view titles on input commit
+	if newViewTitle := getViewTitle(viewName); newViewTitle != "" {
+		setViewTitle(viewName, newViewTitle)
 	}
 
 	go populateList()

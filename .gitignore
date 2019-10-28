@@ -6,3 +6,4 @@ emojiList.go
 .idea/*
 .idea
 *.log
+.travis.yml
