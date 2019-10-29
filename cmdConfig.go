@@ -31,7 +31,7 @@ func cmdConfig(cmd []string) {
 				printError(err.Error())
 				return
 			}
-			printInfoF("Config file loaded: $TEXT", config.Colors.Message.Attachment.stylize(config.filepath))
+			printInfoF("Config file loaded: $TEXT", config.Colors.Feed.File.stylize(config.filepath))
 			return
 		}
 	case len(cmd) > 2:
@@ -41,7 +41,7 @@ func cmdConfig(cmd []string) {
 				printError(err.Error())
 				return
 			}
-			printInfoF("Config file loaded: $TEXT", config.Colors.Message.Attachment.stylize(config.filepath))
+			printInfoF("Config file loaded: $TEXT", config.Colors.Feed.File.stylize(config.filepath))
 			return
 		}
 	}

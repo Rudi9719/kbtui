@@ -48,9 +48,10 @@ func cmdDownloadFile(cmd []string) {
 
 	_, err = chat.Download(messageID, fmt.Sprintf("%s/%s", config.Basics.DownloadPath, fileName))
 	channelName := config.Colors.Message.LinkKeybase.stylize(channel.Name)
+	fileNameStylizied := config.Colors.Feed.File.stylize(fileName)
 	if err != nil {
-		printErrorF(fmt.Sprintf("There was an error downloading %s from $TEXT", fileName), channelName)
+		printErrorF("There was an error downloading $TEXT from $TEXT", fileNameStylizied, channelName)
 	} else {
-		printInfoF(fmt.Sprintf("Downloaded %s from $TEXT", fileName), channelName)
+		printInfoF("Downloaded $TEXT from $TEXT", fileNameStylizied, channelName)
 	}
 }

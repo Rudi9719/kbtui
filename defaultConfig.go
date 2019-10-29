@@ -24,49 +24,54 @@ time_format = "15:04"
 
 
 [colors]
-	 [colors.channels]
-		  [colors.channels.basic]
-		  foreground = "normal"
-		  [colors.channels.header]
-		  foreground = "magenta"
-		  bold = true
-		  [colors.channels.unread]
-		  foreground = "green"
-		  italic = true
+    [colors.channels]
+        [colors.channels.basic]
+        foreground = "normal"
+        [colors.channels.header]
+        foreground = "magenta"
+        bold = true
+        [colors.channels.unread]
+        foreground = "green"
+        italic = true
 
-	 [colors.message]
-		  [colors.message.body]
-		  foreground = "normal"
-		  [colors.message.header]
-		  foreground = "grey"
-		  [colors.message.mention]
-		  foreground = "green"
-		  italic = true
-		  bold = true
-		  [colors.message.id]
-		  foreground = "yellow"
-		  [colors.message.time]
-		  foreground = "magenta"
-		  [colors.message.sender_default]
-		  foreground = "cyan"
-		  bold = true
-		  [colors.message.sender_device]
-		  foreground = "cyan"
-		  [colors.message.attachment]
-		  foreground = "red"
-		  [colors.message.link_url]
-		  foreground = "yellow"
-		  [colors.message.link_keybase]
-		  foreground = "yellow"
-		  [colors.message.reaction]
-		  foreground = "magenta"
-		  bold = true
-		  [colors.message.code]
-		  foreground = "cyan"
-		  background = "grey"
-	 [colors.feed]
-		  [colors.feed.basic]
-		  foreground = "grey"
-		  [colors.feed.error]
-		  foreground = "red"
+    [colors.message]
+        [colors.message.body]
+        foreground = "normal"
+        [colors.message.header]
+        foreground = "grey"
+        bold = true
+        [colors.message.mention]
+        foreground = "green"
+        italic = true
+        bold = true
+        [colors.message.id]
+        foreground = "yellow"
+        [colors.message.time]
+        foreground = "magenta"
+        [colors.message.sender_default]
+        foreground = "cyan"
+        bold = true
+        [colors.message.sender_device]
+        foreground = "cyan"
+        [colors.message.attachment]
+        foreground = "red"
+        [colors.message.link_url]
+        foreground = "yellow"
+        [colors.message.link_keybase]
+        foreground = "yellow"
+        [colors.message.reaction]
+        foreground = "magenta"
+        bold = true
+        [colors.message.quote]
+        foreground = "green"
+        [colors.message.code]
+        foreground = "green"
+        background = "grey"
+    [colors.feed]
+        [colors.feed.basic]
+        foreground = "grey"
+        [colors.feed.error]
+        foreground = "red"
+        [colors.feed.file]
+        foreground = "yellow"
 `

@@ -82,6 +82,7 @@ type Message struct {
 	LinkURL       Style `toml:"link_url"`
 	LinkKeybase   Style `toml:"link_keybase"`
 	Reaction      Style `toml:"reaction"`
+	Quote         Style `toml:"quote"`
 	Code          Style `toml:"code"`
 }
 
@@ -89,4 +90,5 @@ type Message struct {
 type Feed struct {
 	Basic Style `toml:"basic"`
 	Error Style `toml:"error"`
+	File  Style `toml:"file"`
 }
