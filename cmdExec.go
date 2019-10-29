@@ -4,7 +4,6 @@ package main
 
 import (
 	"fmt"
-	"os/exec"
 	"strings"
 )
 
@@ -38,8 +37,7 @@ func cmdExec(cmd []string) {
 }
 
 func runKeybaseExec(args []string) {
-	cmd := exec.Command("keybase", args...)
-	output, err := cmd.CombinedOutput()
+	outputBytes, err := k.Exec(args...)
 	if err != nil {
 		printToView("Feed", fmt.Sprintf("Exec error: %+v", err))
 	} else {
@@ -47,6 +45,7 @@ func runKeybaseExec(args []string) {
 		// unjoin the chat
 		clearView("Chat")
 		setViewTitle("Input", fmt.Sprintf(" /exec %s ", strings.Join(args, " ")))
+		output := string(outputBytes)
 		printToView("Chat", fmt.Sprintf("%s", output))
 	}
 }
