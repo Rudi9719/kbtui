@@ -93,7 +93,7 @@ func BuildAllCommandsT() {
 // Build kbtui with beta functionality
 func BuildBeta() {
 	mg.Deps(getRemotePackages)
-	if err := sh.Run("go", "build", "-tags", "allcommands showreactionscmd emojiList tabcompletion"); err != nil {
+	if err := sh.Run("go", "build", "-tags", "allcommands showreactionscmd tabcompletion execcmd"); err != nil {
 		defer func() {
 			exit(err)
 		}()
