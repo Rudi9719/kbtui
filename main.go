@@ -110,11 +110,11 @@ func layout(g *gocui.Gui) error {
 	}
 	return nil
 }
-func scrollUP(v *gocui.View) error {
+func scrollViewUp(v *gocui.View) error {
 	scrollView(v, -1)
 	return nil
 }
-func scrollDOWN(v *gocui.View) error {
+func scrollViewDown(v *gocui.View) error {
 	scrollView(v, 1)
 	return nil
 }
@@ -146,7 +146,7 @@ func initKeybindings() error {
 	if err := g.SetKeybinding("", gocui.KeyPgup, gocui.ModNone,
 		func(g *gocui.Gui, v *gocui.View) error {
 			cv, _ := g.View("Chat")
-			err := scrollUP(cv)
+			err := scrollViewUp(cv)
 			if err != nil {
 				return err
 			}
@@ -157,7 +157,7 @@ func initKeybindings() error {
 	if err := g.SetKeybinding("", gocui.KeyPgdn, gocui.ModNone,
 		func(g *gocui.Gui, v *gocui.View) error {
 			cv, _ := g.View("Chat")
-			err := scrollDOWN(cv)
+			err := scrollViewDown(cv)
 			if err != nil {
 				return err
 			}
