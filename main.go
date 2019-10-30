@@ -22,6 +22,7 @@ var (
 	channels    []keybase.Channel
 	stream      = false
 	lastMessage keybase.ChatAPI
+	lastChat    = ""
 	g           *gocui.Gui
 )
 
@@ -121,6 +122,13 @@ func initKeybindings() error {
 				return nil
 			}
 			return gocui.ErrQuit
+		}); err != nil {
+		return err
+	}
+	if err := g.SetKeybinding("", gocui.KeyCtrlZ, gocui.ModNone,
+		func(g *gocui.Gui, v *gocui.View) error {
+			cmdJoin([]string{"/join", lastChat})
+			return nil
 		}); err != nil {
 		return err
 	}
