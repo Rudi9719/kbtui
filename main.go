@@ -110,7 +110,56 @@ func layout(g *gocui.Gui) error {
 	}
 	return nil
 }
+func scrollUP(v *gocui.View) error {
+	scrollView(v, -1)
+	return nil
+}
+func scrollDOWN(v *gocui.View) error {
+	scrollView(v, 1)
+	return nil
+}
+func scrollView(v *gocui.View, delta int) error {
+	if v != nil {
+		v.Autoscroll = false
+		ox, oy := v.Origin()
+		if err := v.SetOrigin(ox, oy+delta); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+func autoScrollView(vn string) error {
+	v, err := g.View(vn)
+	if err != nil {
+		return err
+	} else if v != nil {
+		v.Autoscroll = true
+	}
+	return nil
+}
 func initKeybindings() error {
+	if err := g.SetKeybinding("", gocui.KeyPgup, gocui.ModNone,
+		func(g *gocui.Gui, v *gocui.View) error {
+			cv, _ := g.View("Chat")
+			err := scrollUP(cv)
+			if err != nil {
+				return err
+			}
+			return nil
+		}); err != nil {
+		return err
+	}
+	if err := g.SetKeybinding("", gocui.KeyPgdn, gocui.ModNone,
+		func(g *gocui.Gui, v *gocui.View) error {
+			cv, _ := g.View("Chat")
+			err := scrollDOWN(cv)
+			if err != nil {
+				return err
+			}
+			return nil
+		}); err != nil {
+		return err
+	}
 	if err := g.SetKeybinding("", gocui.KeyCtrlC, gocui.ModNone,
 		func(g *gocui.Gui, v *gocui.View) error {
 			input, err := getInputString("Input")
@@ -592,6 +641,7 @@ func handleInput(viewName string) error {
 	return nil
 }
 func sendChat(message string) {
+	autoScrollView("Chat")
 	chat := k.NewChat(channel)
 	_, err := chat.Send(message)
 	if err != nil {
