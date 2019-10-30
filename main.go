@@ -120,10 +120,15 @@ func scrollDOWN(v *gocui.View) error {
 }
 func scrollView(v *gocui.View, delta int) error {
 	if v != nil {
-		v.Autoscroll = false
+		_, y := v.Size()
 		ox, oy := v.Origin()
-		if err := v.SetOrigin(ox, oy+delta); err != nil {
-			return err
+		if oy+delta > strings.Count(v.ViewBuffer(), "\n")-y {
+			v.Autoscroll = true
+		} else {
+			v.Autoscroll = false
+			if err := v.SetOrigin(ox, oy+delta); err != nil {
+				return err
+			}
 		}
 	}
 	return nil
@@ -156,6 +161,13 @@ func initKeybindings() error {
 			if err != nil {
 				return err
 			}
+			return nil
+		}); err != nil {
+		return err
+	}
+	if err := g.SetKeybinding("", gocui.KeyEsc, gocui.ModNone,
+		func(g *gocui.Gui, v *gocui.View) error {
+			autoScrollView("Chat")
 			return nil
 		}); err != nil {
 		return err
