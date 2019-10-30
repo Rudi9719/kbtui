@@ -45,6 +45,7 @@ func cmdJoin(cmd []string) {
 		clearView("Chat")
 		setViewTitle("Input", fmt.Sprintf(" %s ", joinedName))
 		lastChat = joinedName
+		autoScrollView("Chat")
 		go populateChat()
 	default:
 		printInfo(fmt.Sprintf("To join a team use %sjoin <team> <channel>", config.Basics.CmdPrefix))
