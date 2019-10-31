@@ -467,7 +467,7 @@ func formatMessageBody(body string) StyledString {
 	output = output.colorRegex(`@[\w_]*(\.[\w_]+)*`, config.Colors.Message.LinkKeybase)
 	// TODO change how bold, italic etc works, so it uses boldOn boldOff ([1m and [22m)
 	output = output.colorRegex(`\*[^\*]*\*`, config.Colors.Message.Body.withBold())
-	output = output.replaceString("```", "<code>")
+	output = output.replaceString("```", "\n<code>\n")
 	// TODO make background color cover whole line
 	output = output.colorRegex("<code>(.*\n)*<code>", config.Colors.Message.Code)
 	output = output.colorRegex("`[^`]*`", config.Colors.Message.Code)
