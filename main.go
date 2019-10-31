@@ -412,7 +412,7 @@ func populateChat() {
 		}
 	}
 	printToView("Chat", actuallyPrintMe)
-
+	go populateList()
 }
 func populateList() {
 	_, maxY := g.Size()
