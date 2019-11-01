@@ -26,22 +26,24 @@ func cmdEdit(cmd []string) {
 		if len(cmd) == 2 {
 			messageID, _ = strconv.Atoi(cmd[1])
 		} else if lastMessage.ID != 0 {
+			message, _ := chat.ReadMessage(lastMessage.ID)
+			lastMessage.Type = message.Result.Messages[0].Msg.Content.Type
 			if lastMessage.Type != "text" {
-				printToView("Feed", "Last message isn't editable (is it an edit?)")
+				printError("Last message isn't editable (is it an edit?)")
 				return
 			}
 			messageID = lastMessage.ID
 		} else {
-			printToView("Feed", "No message to edit")
+			printError("No message to edit")
 			return
 		}
 		origMessage, _ := chat.ReadMessage(messageID)
 		if origMessage.Result.Messages[0].Msg.Content.Type != "text" {
-			printToView("Feed", fmt.Sprintf("%+v", origMessage))
+			printInfo(fmt.Sprintf("%+v", origMessage))
 			return
 		}
 		if origMessage.Result.Messages[0].Msg.Sender.Username != k.Username {
-			printToView("Feed", "You cannot edit another user's messages.")
+			printError("You cannot edit another user's messages.")
 			return
 		}
 		editString := origMessage.Result.Messages[0].Msg.Content.Text.Body
@@ -53,14 +55,14 @@ func cmdEdit(cmd []string) {
 		return
 	}
 	if len(cmd) < 3 {
-		printToView("Feed", "Not enough options for Edit")
+		printError("Not enough options for Edit")
 		return
 	}
 	messageID, _ = strconv.Atoi(cmd[1])
 	newMessage := strings.Join(cmd[2:], " ")
 	_, err := chat.Edit(messageID, newMessage)
 	if err != nil {
-		printToView("Feed", fmt.Sprintf("Error editing message %d, %+v", messageID, err))
+		printError(fmt.Sprintf("Error editing message %d, %+v", messageID, err))
 	}
 
 }

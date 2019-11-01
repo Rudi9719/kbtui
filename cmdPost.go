@@ -29,8 +29,8 @@ func cmdPost(cmd []string) {
 	chat := k.NewChat(pubChan)
 	_, err := chat.Send(post)
 	if err != nil {
-		printToView("Feed", fmt.Sprintf("There was an error with your post: %+v", err))
+		printError(fmt.Sprintf("There was an error with your post: %+v", err))
 	} else {
-		printToView("Feed", "You have publically posted to your wall, signed by your current device.")
+		printInfo("You have publically posted to your wall, signed by your current device.")
 	}
 }

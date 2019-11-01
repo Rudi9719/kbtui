@@ -21,14 +21,14 @@ func init() {
 
 func cmdUploadFile(cmd []string) {
 	if len(cmd) < 2 {
-		printToView("Feed", fmt.Sprintf("%s%s $filePath $fileName - Upload file from absolute path with optional name", cmdPrefix, cmd[0]))
+		printInfo(fmt.Sprintf("%s%s $filePath $fileName - Upload file from absolute path with optional name", config.Basics.CmdPrefix, cmd[0]))
 		return
 	}
 	filePath := cmd[1]
 	if !strings.HasPrefix(filePath, "/") {
 		dir, err := os.Getwd()
 		if err != nil {
-			printToView("Feed", fmt.Sprintf("There was an error determining path %+v", err))
+			printError(fmt.Sprintf("There was an error determining path %+v", err))
 		}
 		filePath = fmt.Sprintf("%s/%s", dir, filePath)
 	}
@@ -40,9 +40,10 @@ func cmdUploadFile(cmd []string) {
 	}
 	chat := k.NewChat(channel)
 	_, err := chat.Upload(fileName, filePath)
+	channelName := config.Colors.Message.LinkKeybase.stylize(channel.Name).string()
 	if err != nil {
-		printToView("Feed", fmt.Sprintf("There was an error uploading %s to %s\n%+v", filePath, channel.Name, err))
+		printError(fmt.Sprintf("There was an error uploading %s to %s\n%+v", filePath, channelName, err))
 	} else {
-		printToView("Feed", fmt.Sprintf("Uploaded %s to %s", filePath, channel.Name))
+		printInfo(fmt.Sprintf("Uploaded %s to %s", filePath, channelName))
 	}
 }
