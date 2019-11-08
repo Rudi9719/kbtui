@@ -2,16 +2,12 @@ package main
 
 import (
 	"fmt"
-	"github.com/pelletier/go-toml"
 	"regexp"
 	"strings"
 )
 
-// Begin Colors
-type color int
-
 const (
-	black color = iota
+	black int = iota
 	red
 	green
 	yellow
@@ -19,103 +15,88 @@ const (
 	magenta
 	cyan
 	grey
-	normal color = -1
+	normal int = -1
 )
 
-func colorFromString(s string) color {
-	s = strings.ToLower(s)
-	switch s {
-	case "black":
-		return black
-	case "red":
-		return red
-	case "green":
-		return green
-	case "yellow":
-		return yellow
-	case "purple":
-		return purple
-	case "magenta":
-		return magenta
-	case "cyan":
-		return cyan
-	case "grey":
-		return grey
-	case "normal":
+var colorMapString = map[string]int{
+	"black":   black,
+	"red":     red,
+	"green":   green,
+	"yellow":  yellow,
+	"purple":  purple,
+	"magenta": magenta,
+	"cyan":    cyan,
+	"grey":    grey,
+	"normal":  normal,
+}
+
+var colorMapInt = map[int]string{
+	black:   "black",
+	red:     "red",
+	green:   "green",
+	yellow:  "yellow",
+	purple:  "purple",
+	magenta: "magenta",
+	cyan:    "cyan",
+	grey:    "grey",
+	normal:  "normal",
+}
+
+func colorFromString(color string) int {
+	var result int
+	color = strings.ToLower(color)
+	result, ok := colorMapString[color]
+	if !ok {
 		return normal
-	default:
-		printError(fmt.Sprintf("color `%s` cannot be parsed.", s))
 	}
-	return normal
+	return result
 }
 
-// Style struct for specializing the style/color of a stylize
-type Style struct {
-	foregroundColor color
-	backgroundColor color
-	bold            bool
-	italic          bool // Currently not supported by the UI library
-	underline       bool
-	strikethrough   bool // Currently not supported by the UI library
-	inverse         bool
+func colorFromInt(color int) string {
+	var result string
+	result, ok := colorMapInt[color]
+	if !ok {
+		return "normal"
+	}
+	return result
 }
 
-var basicStyle = Style{normal, normal, false, false, false, false, false}
-
-func styleFromConfig(config *toml.Tree, key string) Style {
-	key = "Colors." + key + "."
-	style := basicStyle
-	if config.Has(key + "foreground") {
-		style = style.withForeground(colorFromString(config.Get(key + "foreground").(string)))
-	}
-	if config.Has(key + "background") {
-		style = style.withForeground(colorFromString(config.Get(key + "background").(string)))
-	}
-	if config.GetDefault(key+"bold", false).(bool) {
-		style = style.withBold()
-	}
-	if config.GetDefault(key+"italic", false).(bool) {
-		style = style.withItalic()
-	}
-	if config.GetDefault(key+"underline", false).(bool) {
-		style = style.withUnderline()
-	}
-	if config.GetDefault(key+"strikethrough", false).(bool) {
-		style = style.withStrikethrough()
-	}
-	if config.GetDefault(key+"inverse", false).(bool) {
-		style = style.withInverse()
-	}
-
-	return style
+var basicStyle = Style{
+	Foreground:    colorMapInt[normal],
+	Background:    colorMapInt[normal],
+	Italic:        false,
+	Bold:          false,
+	Underline:     false,
+	Strikethrough: false,
+	Inverse:       false,
 }
 
-func (s Style) withForeground(f color) Style {
-	s.foregroundColor = f
+func (s Style) withForeground(color int) Style {
+	s.Foreground = colorFromInt(color)
 	return s
 }
-func (s Style) withBackground(f color) Style {
-	s.backgroundColor = f
+func (s Style) withBackground(color int) Style {
+	s.Background = colorFromInt(color)
 	return s
 }
 func (s Style) withBold() Style {
-	s.bold = true
+	s.Bold = true
 	return s
 }
 func (s Style) withInverse() Style {
-	s.inverse = true
+	s.Inverse = true
 	return s
 }
 func (s Style) withItalic() Style {
-	s.italic = true
+	s.Italic = true
 	return s
 }
 func (s Style) withStrikethrough() Style {
-	s.strikethrough = true
+	s.Strikethrough = true
 	return s
 }
 func (s Style) withUnderline() Style {
-	s.underline = true
+	s.Underline = true
 	return s
 }
 
@@ -123,29 +104,29 @@ func (s Style) withUnderline() Style {
 //  which essentially just adds on top. that is relevant in the case of
 //  bold/italic etc - it should add style - not clear.
 func (s Style) toANSI() string {
-	if colorless {
+	if config.Basics.Colorless {
 		return ""
 	}
 	output := "\x1b[0m\x1b[0"
-	if s.foregroundColor != normal {
-		output += fmt.Sprintf(";%d", 30+s.foregroundColor)
+	if colorFromString(s.Foreground) != normal {
+		output += fmt.Sprintf(";%d", 30+colorFromString(s.Foreground))
 	}
-	if s.backgroundColor != normal {
-		output += fmt.Sprintf(";%d", 40+s.backgroundColor)
+	if colorFromString(s.Background) != normal {
+		output += fmt.Sprintf(";%d", 40+colorFromString(s.Background))
 	}
-	if s.bold {
+	if s.Bold {
 		output += ";1"
 	}
-	if s.italic {
+	if s.Italic {
 		output += ";3"
 	}
-	if s.underline {
+	if s.Underline {
 		output += ";4"
 	}
-	if s.inverse {
+	if s.Inverse {
 		output += ";7"
 	}
-	if s.strikethrough {
+	if s.Strikethrough {
 		output += ";9"
 	}
 
@@ -195,22 +176,23 @@ func (t StyledString) replaceString(match string, value string) StyledString {
 	t.message = strings.Replace(t.message, match, value, -1)
 	return t
 }
-func (t StyledString) replaceRegex(match string, value StyledString) StyledString {
-	var re = regexp.MustCompile("(" + match + ")")
-	t.message = re.ReplaceAllString(t.message, value.stringFollowedByStyle(t.style))
-	return t
-}
 
 // Overrides current formatting
 func (t StyledString) colorRegex(match string, style Style) StyledString {
 	re := regexp.MustCompile("(" + match + ")")
-	subStrings := re.FindAllString(t.message, -1)
-	for _, element := range subStrings {
-		cleanSubstring := style.stylize(removeFormatting(element))
-		t.message = strings.Replace(t.message, element, cleanSubstring.stringFollowedByStyle(t.style), -1)
+	locations := re.FindAllStringIndex(t.message, -1)
+	var newMessage string
+	var prevIndex int
+	for _, loc := range locations {
+		cleanSubstring := style.stylize(removeFormatting(string(t.message[loc[0]:loc[1]])))
+		newMessage += t.message[prevIndex:loc[0]]
+		newMessage += cleanSubstring.stringFollowedByStyle(t.style)
+		prevIndex = loc[1]
 	}
+	// Append any string after the final match
+	newMessage += t.message[prevIndex:len(t.message)]
+	t.message = newMessage
 	return t
-	// Old versionreturn t.replaceRegex(match, style.stylize(`$1`))
 }
 
 // Appends the other stylize at the end, but retains same style

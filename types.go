@@ -17,3 +17,76 @@ type TypeCommand struct {
 	Description string                // A short description of the command
 	Exec        func(keybase.ChatAPI) // A function that takes a raw chat message as input
 }
+
+// Config holds user-configurable values
+type Config struct {
+	filepath   string     `toml:"-"` // filepath is not stored in the config file, but is written to the Config struct so it's known where the config was loaded from
+	Basics     Basics     `toml:"basics"`
+	Formatting Formatting `toml:"formatting"`
+	Colors     Colors     `toml:"colors"`
+}
+
+// Basics holds the 'basics' section of the config file
+type Basics struct {
+	DownloadPath  string `toml:"download_path"`
+	Colorless     bool   `toml:"colorless"`
+	CmdPrefix     string `toml:"cmd_prefix"`
+	UnicodeEmojis bool   `toml:"unicode_emojis"`
+}
+
+// Formatting holds the 'formatting' section of the config file
+type Formatting struct {
+	OutputFormat        string `toml:"output_format"`
+	OutputStreamFormat  string `toml:"output_stream_format"`
+	OutputMentionFormat string `toml:"output_mention_format"`
+	PMFormat            string `toml:"pm_format"`
+	DateFormat          string `toml:"date_format"`
+	TimeFormat          string `toml:"time_format"`
+}
+
+// Colors holds the 'colors' section of the config file
+type Colors struct {
+	Channels Channels `toml:"channels"`
+	Message  Message  `toml:"message"`
+	Feed     Feed     `toml:"feed"`
+}
+
+// Style holds basic style information
+type Style struct {
+	Foreground    string `toml:"foreground"`
+	Background    string `toml:"background"`
+	Italic        bool   `toml:"italic"`
+	Bold          bool   `toml:"bold"`
+	Underline     bool   `toml:"underline"`
+	Strikethrough bool   `toml:"strikethrough"`
+	Inverse       bool   `toml:"inverse"`
+}
+
+// Channels holds the style information for various elements of a channel
+type Channels struct {
+	Basic  Style `toml:"basic"`
+	Header Style `toml:"header"`
+	Unread Style `toml:"unread"`
+}
+
+// Message holds the style information for various elements of a message
+type Message struct {
+	Body          Style `toml:"body"`
+	Header        Style `toml:"header"`
+	Mention       Style `toml:"mention"`
+	ID            Style `toml:"id"`
+	Time          Style `toml:"time"`
+	SenderDefault Style `toml:"sender_default"`
+	SenderDevice  Style `toml:"sender_device"`
+	Attachment    Style `toml:"attachment"`
+	LinkURL       Style `toml:"link_url"`
+	LinkKeybase   Style `toml:"link_keybase"`
+	Reaction      Style `toml:"reaction"`
+	Code          Style `toml:"code"`
+}
+
+// Feed holds the style information for various elements of the feed window
+type Feed struct {
+	Basic Style `toml:"basic"`
+	Error Style `toml:"error"`
+}

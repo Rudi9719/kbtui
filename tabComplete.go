@@ -66,7 +66,8 @@ func handleTab(viewName string) error {
 // Main tab completion functions
 func getEmojiTabCompletionSlice(inputWord string) []string {
 	// use the emojiSlice from emojiList.go and filter it for the input word
-	resultSlice := filterStringSlice(emojiSlice, inputWord)
+	//resultSlice := filterStringSlice(emojiSlice, inputWord)
+	resultSlice := filterEmojiMap(emojiMap, inputWord)
 	return resultSlice
 }
 func getChannelTabCompletionSlice(inputWord string) []string {
@@ -148,6 +149,15 @@ func filterStringSlice(ss []string, fv string) []string {
 	for _, s := range ss {
 		if strings.HasPrefix(s, fv) {
 			rs = append(rs, s)
+		}
+	}
+	return rs
+}
+func filterEmojiMap(eMap map[string]emojiData, fv string) []string {
+	var rs []string
+	for k, _ := range eMap {
+		if strings.HasPrefix(k, fv) {
+			rs = append(rs, k)
 		}
 	}
 	return rs

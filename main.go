@@ -22,8 +22,11 @@ var (
 	channels    []keybase.Channel
 	stream      = false
 	lastMessage keybase.ChatAPI
+	lastChat    = ""
 	g           *gocui.Gui
 )
+
+var config *Config
 
 func main() {
 	if !k.LoggedIn {
@@ -37,6 +40,7 @@ func main() {
 	}
 	defer g.Close()
 	g.SetManagerFunc(layout)
+	RunCommand("config", "load")
 	go populateList()
 	go updateChatWindow()
 	if len(os.Args) > 1 {
@@ -81,7 +85,7 @@ func layout(g *gocui.Gui) error {
 		chatView.Autoscroll = true
 		chatView.Wrap = true
 		welcomeText := basicStyle.stylize("Welcome $USER!\n\nYour chats will appear here.\nSupported commands are as follows:\n")
-		welcomeText = welcomeText.replace("$USER", mentionColor.stylize(k.Username))
+		welcomeText = welcomeText.replace("$USER", config.Colors.Message.Mention.stylize(k.Username))
 		fmt.Fprintln(chatView, welcomeText.string())
 		RunCommand("help")
 	}
@@ -94,7 +98,7 @@ func layout(g *gocui.Gui) error {
 		}
 		inputView.Editable = true
 		inputView.Wrap = true
-		inputView.Title = fmt.Sprintf(" Not in a chat - write `%sj` to join", cmdPrefix)
+		inputView.Title = fmt.Sprintf(" Not in a chat - write `%sj` to join", config.Basics.CmdPrefix)
 		g.Cursor = true
 	}
 	if listView, err4 := g.SetView("List", 0, 0, maxX/2-maxX/3-1, maxY-1, 0); err4 != nil {
@@ -106,7 +110,68 @@ func layout(g *gocui.Gui) error {
 	}
 	return nil
 }
+func scrollViewUp(v *gocui.View) error {
+	scrollView(v, -1)
+	return nil
+}
+func scrollViewDown(v *gocui.View) error {
+	scrollView(v, 1)
+	return nil
+}
+func scrollView(v *gocui.View, delta int) error {
+	if v != nil {
+		_, y := v.Size()
+		ox, oy := v.Origin()
+		if oy+delta > strings.Count(v.ViewBuffer(), "\n")-y {
+			v.Autoscroll = true
+		} else {
+			v.Autoscroll = false
+			if err := v.SetOrigin(ox, oy+delta); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+func autoScrollView(vn string) error {
+	v, err := g.View(vn)
+	if err != nil {
+		return err
+	} else if v != nil {
+		v.Autoscroll = true
+	}
+	return nil
+}
 func initKeybindings() error {
+	if err := g.SetKeybinding("", gocui.KeyPgup, gocui.ModNone,
+		func(g *gocui.Gui, v *gocui.View) error {
+			cv, _ := g.View("Chat")
+			err := scrollViewUp(cv)
+			if err != nil {
+				return err
+			}
+			return nil
+		}); err != nil {
+		return err
+	}
+	if err := g.SetKeybinding("", gocui.KeyPgdn, gocui.ModNone,
+		func(g *gocui.Gui, v *gocui.View) error {
+			cv, _ := g.View("Chat")
+			err := scrollViewDown(cv)
+			if err != nil {
+				return err
+			}
+			return nil
+		}); err != nil {
+		return err
+	}
+	if err := g.SetKeybinding("", gocui.KeyEsc, gocui.ModNone,
+		func(g *gocui.Gui, v *gocui.View) error {
+			autoScrollView("Chat")
+			return nil
+		}); err != nil {
+		return err
+	}
 	if err := g.SetKeybinding("", gocui.KeyCtrlC, gocui.ModNone,
 		func(g *gocui.Gui, v *gocui.View) error {
 			input, err := getInputString("Input")
@@ -118,6 +183,13 @@ func initKeybindings() error {
 				return nil
 			}
 			return gocui.ErrQuit
+		}); err != nil {
+		return err
+	}
+	if err := g.SetKeybinding("", gocui.KeyCtrlZ, gocui.ModNone,
+		func(g *gocui.Gui, v *gocui.View) error {
+			cmdJoin([]string{"/join", lastChat})
+			return nil
 		}); err != nil {
 		return err
 	}
@@ -254,7 +326,7 @@ func printError(message string) {
 	printErrorF(message)
 }
 func printErrorF(message string, parts ...StyledString) {
-	printToView("Feed", errorColor.sprintf(removeFormatting(message), parts...).string())
+	printToView("Feed", config.Colors.Feed.Error.sprintf(removeFormatting(message), parts...).string())
 }
 
 // this removes formatting
@@ -264,15 +336,19 @@ func printInfo(message string) {
 
 // this removes formatting
 func printInfoF(message string, parts ...StyledString) {
-	printToView("Feed", feedColor.sprintf(removeFormatting(message), parts...).string())
+	printToView("Feed", config.Colors.Feed.Basic.sprintf(removeFormatting(message), parts...).string())
 }
 func printToView(viewName string, message string) {
 	g.Update(func(g *gocui.Gui) error {
 		updatingView, err := g.View(viewName)
 		if err != nil {
 			return err
+		} else {
+			if config.Basics.UnicodeEmojis {
+				message = emojiUnicodeConvert(message)
+			}
+			fmt.Fprintf(updatingView, "%s\n", message)
 		}
-		fmt.Fprintf(updatingView, "%s\n", message)
 		return nil
 	})
 }
@@ -336,7 +412,7 @@ func populateChat() {
 		}
 	}
 	printToView("Chat", actuallyPrintMe)
-
+	go populateList()
 }
 func populateList() {
 	_, maxY := g.Size()
@@ -344,10 +420,10 @@ func populateList() {
 		log.Printf("%+v", err)
 	} else {
 		clearView("List")
-		var textBase = channelsColor.stylize("")
-		var recentPMs = textBase.append(channelsHeaderColor.stylize("---[PMs]---\n"))
+		var textBase = config.Colors.Channels.Basic.stylize("")
+		var recentPMs = textBase.append(config.Colors.Channels.Header.stylize("---[PMs]---\n"))
 		var recentPMsCount = 0
-		var recentChannels = textBase.append(channelsHeaderColor.stylize("---[Teams]---\n"))
+		var recentChannels = textBase.append(config.Colors.Channels.Header.stylize("---[Teams]---\n"))
 		var recentChannelsCount = 0
 		for _, s := range testVar.Result.Conversations {
 			channels = append(channels, s.Channel)
@@ -356,7 +432,7 @@ func populateList() {
 				if recentChannelsCount <= ((maxY - 2) / 3) {
 					channel := fmt.Sprintf("%s\n\t#%s\n", s.Channel.Name, s.Channel.TopicName)
 					if s.Unread {
-						recentChannels = recentChannels.append(channelUnreadColor.stylize("*" + channel))
+						recentChannels = recentChannels.append(config.Colors.Channels.Unread.stylize("*" + channel))
 					} else {
 						recentChannels = recentChannels.appendString(channel)
 					}
@@ -366,7 +442,7 @@ func populateList() {
 				if recentPMsCount <= ((maxY - 2) / 3) {
 					pmName := fmt.Sprintf("%s\n", cleanChannelName(s.Channel.Name))
 					if s.Unread {
-						recentPMs = recentPMs.append(channelUnreadColor.stylize("*" + pmName))
+						recentPMs = recentPMs.append(config.Colors.Channels.Unread.stylize("*" + pmName))
 					} else {
 						recentPMs = recentPMs.appendString(pmName)
 					}
@@ -383,35 +459,35 @@ func populateList() {
 
 // Formatting
 func formatMessageBody(body string) StyledString {
-	output := messageBodyColor.stylize(body)
+	output := config.Colors.Message.Body.stylize(body)
 
 	output = colorReplaceMentionMe(output)
-	output = output.colorRegex(`_[^_]*_`, messageBodyColor.withItalic())
-	output = output.colorRegex(`~[^~]*~`, messageBodyColor.withStrikethrough())
-	output = output.colorRegex(`@[\w_]*(\.[\w_]+)*`, messageLinkKeybaseColor)
+	output = output.colorRegex(`_[^_]*_`, config.Colors.Message.Body.withItalic())
+	output = output.colorRegex(`~[^~]*~`, config.Colors.Message.Body.withStrikethrough())
+	output = output.colorRegex(`@[\w_]*(\.[\w_]+)*`, config.Colors.Message.LinkKeybase)
 	// TODO change how bold, italic etc works, so it uses boldOn boldOff ([1m and [22m)
-	output = output.colorRegex(`\*[^\*]*\*`, messageBodyColor.withBold())
-	output = output.replaceString("```", "<code>")
+	output = output.colorRegex(`\*[^\*]*\*`, config.Colors.Message.Body.withBold())
+	output = output.replaceString("```", "\n<code>\n")
 	// TODO make background color cover whole line
-	output = output.colorRegex("<code>(.*\n)*<code>", messageCodeColor)
-	output = output.colorRegex("`[^`]*`", messageCodeColor)
+	output = output.colorRegex("<code>(.*\n)*<code>", config.Colors.Message.Code)
+	output = output.colorRegex("`[^`]*`", config.Colors.Message.Code)
 	// mention URL
-	output = output.colorRegex(`(https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*))`, messageLinkURLColor)
+	output = output.colorRegex(`(https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*))`, config.Colors.Message.LinkURL)
 	return output
 }
 
 // TODO use this more
 func formatChannel(ch keybase.Channel) StyledString {
-	return messageLinkKeybaseColor.stylize(fmt.Sprintf("@%s#%s", ch.Name, ch.TopicName))
+	return config.Colors.Message.LinkKeybase.stylize(fmt.Sprintf("@%s#%s", ch.Name, ch.TopicName))
 }
 
 func colorReplaceMentionMe(msg StyledString) StyledString {
-	return msg.colorRegex("(@?"+k.Username+")", mentionColor)
+	return msg.colorRegex(`(@?\b`+k.Username+`\b)`, config.Colors.Message.Mention)
 }
 func colorUsername(username string) StyledString {
-	var color = messageSenderDefaultColor
+	var color = config.Colors.Message.SenderDefault
 	if username == k.Username {
-		color = mentionColor
+		color = config.Colors.Message.Mention
 	}
 	return color.stylize(username)
 }
@@ -422,27 +498,27 @@ func cleanChannelName(c string) string {
 }
 
 func formatMessage(api keybase.ChatAPI, formatString string) string {
-	ret := messageHeaderColor.stylize("")
+	ret := config.Colors.Message.Header.stylize("")
 	msgType := api.Msg.Content.Type
 	switch msgType {
 	case "text", "attachment":
-		ret = messageHeaderColor.stylize(formatString)
+		ret = config.Colors.Message.Header.stylize(formatString)
 		tm := time.Unix(int64(api.Msg.SentAt), 0)
 		var msg = formatMessageBody(api.Msg.Content.Text.Body)
 		if msgType == "attachment" {
-			msg = messageBodyColor.stylize("$TITLE\n$FILE")
+			msg = config.Colors.Message.Body.stylize("$TITLE\n$FILE")
 			attachment := api.Msg.Content.Attachment
 			msg = msg.replaceString("$TITLE", attachment.Object.Title)
-			msg = msg.replace("$FILE", messageAttachmentColor.stylize(fmt.Sprintf("[Attachment: %s]", attachment.Object.Filename)))
+			msg = msg.replace("$FILE", config.Colors.Message.Attachment.stylize(fmt.Sprintf("[Attachment: %s]", attachment.Object.Filename)))
 		}
 
 		user := colorUsername(api.Msg.Sender.Username)
-		device := messageSenderDeviceColor.stylize(api.Msg.Sender.DeviceName)
-		msgID := messageIDColor.stylize(fmt.Sprintf("%d", api.Msg.ID))
-		date := messageTimeColor.stylize(tm.Format(dateFormat))
-		msgTime := messageTimeColor.stylize(tm.Format(timeFormat))
+		device := config.Colors.Message.SenderDevice.stylize(api.Msg.Sender.DeviceName)
+		msgID := config.Colors.Message.ID.stylize(fmt.Sprintf("%d", api.Msg.ID))
+		date := config.Colors.Message.Time.stylize(tm.Format(config.Formatting.DateFormat))
+		msgTime := config.Colors.Message.Time.stylize(tm.Format(config.Formatting.TimeFormat))
 
-		channelName := messageIDColor.stylize(fmt.Sprintf("@%s#%s", api.Msg.Channel.Name, api.Msg.Channel.TopicName))
+		channelName := config.Colors.Message.ID.stylize(fmt.Sprintf("@%s#%s", api.Msg.Channel.Name, api.Msg.Channel.TopicName))
 		ret = ret.replace("$MSG", msg)
 		ret = ret.replace("$USER", user)
 		ret = ret.replace("$DEVICE", device)
@@ -454,9 +530,9 @@ func formatMessage(api keybase.ChatAPI, formatString string) string {
 	return ret.string()
 }
 func formatOutput(api keybase.ChatAPI) string {
-	format := outputFormat
+	format := config.Formatting.OutputFormat
 	if stream {
-		format = outputStreamFormat
+		format = config.Formatting.OutputStreamFormat
 	}
 	return formatMessage(api, format)
 }
@@ -484,7 +560,7 @@ func handleMessage(api keybase.ChatAPI) {
 						if m.Text == k.Username {
 							// We are in a team
 							if topicName != channel.TopicName {
-								printInfo(formatMessage(api, mentionFormat))
+								printInfo(formatMessage(api, config.Formatting.OutputMentionFormat))
 								fmt.Print("\a")
 							}
 
@@ -493,7 +569,7 @@ func handleMessage(api keybase.ChatAPI) {
 					}
 				} else {
 					if msgSender != channel.Name {
-						printInfo(formatMessage(api, pmFormat))
+						printInfo(formatMessage(api, config.Formatting.PMFormat))
 						fmt.Print("\a")
 					}
 
@@ -511,7 +587,7 @@ func handleMessage(api keybase.ChatAPI) {
 			if api.Msg.Channel.MembersType == keybase.TEAM {
 				printToView("Chat", formatOutput(api))
 			} else {
-				printToView("Chat", formatMessage(api, pmFormat))
+				printToView("Chat", formatMessage(api, config.Formatting.PMFormat))
 			}
 		}
 	} else {
@@ -545,8 +621,8 @@ func handleInput(viewName string) error {
 	if inputString == "" {
 		return nil
 	}
-	if strings.HasPrefix(inputString, cmdPrefix) {
-		cmd := deleteEmpty(strings.Split(inputString[len(cmdPrefix):], " "))
+	if strings.HasPrefix(inputString, config.Basics.CmdPrefix) {
+		cmd := deleteEmpty(strings.Split(inputString[len(config.Basics.CmdPrefix):], " "))
 		if len(cmd) < 1 {
 			return nil
 		}
@@ -565,6 +641,7 @@ func handleInput(viewName string) error {
 		cmd[0] = inputString[:1]
 		RunCommand(cmd...)
 	} else {
+		inputString = resolveRootEmojis(inputString)
 		go sendChat(inputString)
 	}
 	// restore any tab completion view titles on input commit
@@ -576,6 +653,7 @@ func handleInput(viewName string) error {
 	return nil
 }
 func sendChat(message string) {
+	autoScrollView("Chat")
 	chat := k.NewChat(channel)
 	_, err := chat.Send(message)
 	if err != nil {
