@@ -40,10 +40,11 @@ func cmdUploadFile(cmd []string) {
 	}
 	chat := k.NewChat(channel)
 	_, err := chat.Upload(fileName, filePath)
-	channelName := config.Colors.Message.LinkKeybase.stylize(channel.Name).string()
+	channelName := config.Colors.Message.LinkKeybase.stylize(channel.Name)
+	fileNameStylized := config.Colors.Feed.File.stylize(filePath)
 	if err != nil {
-		printError(fmt.Sprintf("There was an error uploading %s to %s\n%+v", filePath, channelName, err))
+		printError(fmt.Sprintf("There was an error uploading %s to %s\n%+v", filePath, channel.Name, err))
 	} else {
-		printInfo(fmt.Sprintf("Uploaded %s to %s", filePath, channelName))
+		printInfoF("Uploaded $TEXT to $TEXT", fileNameStylized, channelName)
 	}
 }
