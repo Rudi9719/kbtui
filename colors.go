@@ -79,6 +79,7 @@ func (s Style) withBackground(color int) Style {
 	s.Background = colorFromInt(color)
 	return s
 }
+
 func (s Style) withBold() Style {
 	s.Bold = true
 	return s
@@ -107,30 +108,31 @@ func (s Style) toANSI() string {
 	if config.Basics.Colorless {
 		return ""
 	}
-	output := "\x1b[0m\x1b[0"
+	styleSlice := []string{"0"}
+
 	if colorFromString(s.Foreground) != normal {
-		output += fmt.Sprintf(";%d", 30+colorFromString(s.Foreground))
+		styleSlice = append(styleSlice, fmt.Sprintf("%d", 30+colorFromString(s.Foreground)))
 	}
 	if colorFromString(s.Background) != normal {
-		output += fmt.Sprintf(";%d", 40+colorFromString(s.Background))
+		styleSlice = append(styleSlice, fmt.Sprintf("%d", 40+colorFromString(s.Background)))
 	}
 	if s.Bold {
-		output += ";1"
+		styleSlice = append(styleSlice, "1")
 	}
 	if s.Italic {
-		output += ";3"
+		styleSlice = append(styleSlice, "3")
 	}
 	if s.Underline {
-		output += ";4"
+		styleSlice = append(styleSlice, "4")
 	}
 	if s.Inverse {
-		output += ";7"
+		styleSlice = append(styleSlice, "7")
 	}
 	if s.Strikethrough {
-		output += ";9"
+		styleSlice = append(styleSlice, "9")
 	}
 
-	return output + "m"
+	return "\x1b[" + strings.Join(styleSlice, ";") + "m"
 }
 
 // End Colors
@@ -141,6 +143,12 @@ type StyledString struct {
 	message string
 	style   Style
 }
+
+func (ss StyledString) withStyle(style Style) StyledString {
+	return StyledString{ss.message, style}
+}
+
+// TODO change StyledString to have styles at start-end indexes.
 
 // TODO handle all formatting types
 func (s Style) sprintf(base string, parts ...StyledString) StyledString {
@@ -158,51 +166,58 @@ func (s Style) sprintf(base string, parts ...StyledString) StyledString {
 func (s Style) stylize(msg string) StyledString {
 	return StyledString{msg, s}
 }
-func (t StyledString) stringFollowedByStyle(style Style) string {
-	return t.style.toANSI() + t.message + style.toANSI()
+func (ss StyledString) stringFollowedByStyle(style Style) string {
+	return ss.style.toANSI() + ss.message + style.toANSI()
 }
-func (t StyledString) string() string {
-	return t.stringFollowedByStyle(basicStyle)
+func (ss StyledString) string() string {
+	return ss.stringFollowedByStyle(basicStyle)
 }
 
-func (t StyledString) replace(match string, value StyledString) StyledString {
-	return t.replaceN(match, value, -1)
+func (ss StyledString) replace(match string, value StyledString) StyledString {
+	return ss.replaceN(match, value, -1)
 }
-func (t StyledString) replaceN(match string, value StyledString, n int) StyledString {
-	t.message = strings.Replace(t.message, match, value.stringFollowedByStyle(t.style), n)
-	return t
+func (ss StyledString) replaceN(match string, value StyledString, n int) StyledString {
+	ss.message = strings.Replace(ss.message, match, value.stringFollowedByStyle(ss.style), n)
+	return ss
 }
-func (t StyledString) replaceString(match string, value string) StyledString {
-	t.message = strings.Replace(t.message, match, value, -1)
-	return t
+func (ss StyledString) replaceString(match string, value string) StyledString {
+	ss.message = strings.Replace(ss.message, match, value, -1)
+	return ss
 }
 
 // Overrides current formatting
-func (t StyledString) colorRegex(match string, style Style) StyledString {
-	re := regexp.MustCompile("(" + match + ")")
-	locations := re.FindAllStringIndex(t.message, -1)
+func (ss StyledString) colorRegex(match string, style Style) StyledString {
+	return ss.regexReplaceFunc(match, func(subString string) string {
+		return style.stylize(removeFormatting(subString)).stringFollowedByStyle(ss.style)
+	})
+}
+
+// Replacer function takes the current match as input and should return how the match should be preseneted instead
+func (ss StyledString) regexReplaceFunc(match string, replacer func(string) string) StyledString {
+	re := regexp.MustCompile(match)
+	locations := re.FindAllStringIndex(ss.message, -1)
 	var newMessage string
 	var prevIndex int
 	for _, loc := range locations {
-		cleanSubstring := style.stylize(removeFormatting(string(t.message[loc[0]:loc[1]])))
-		newMessage += t.message[prevIndex:loc[0]]
-		newMessage += cleanSubstring.stringFollowedByStyle(t.style)
+		newSubstring := replacer(ss.message[loc[0]:loc[1]])
+		newMessage += ss.message[prevIndex:loc[0]]
+		newMessage += newSubstring
 		prevIndex = loc[1]
 	}
 	// Append any string after the final match
-	newMessage += t.message[prevIndex:len(t.message)]
-	t.message = newMessage
-	return t
+	newMessage += ss.message[prevIndex:len(ss.message)]
+	ss.message = newMessage
+	return ss
 }
 
 // Appends the other stylize at the end, but retains same style
-func (t StyledString) append(other StyledString) StyledString {
-	t.message = t.message + other.stringFollowedByStyle(t.style)
-	return t
+func (ss StyledString) append(other StyledString) StyledString {
+	ss.message = ss.message + other.stringFollowedByStyle(ss.style)
+	return ss
 }
-func (t StyledString) appendString(other string) StyledString {
-	t.message += other
-	return t
+func (ss StyledString) appendString(other string) StyledString {
+	ss.message += other
+	return ss
 }
 
 // Begin Formatting

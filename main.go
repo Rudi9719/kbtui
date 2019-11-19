@@ -9,6 +9,7 @@ import (
 
 	"github.com/awesome-gocui/gocui"
 	"samhofi.us/x/keybase"
+	"unicode/utf8"
 )
 
 var (
@@ -333,6 +334,9 @@ func printErrorF(message string, parts ...StyledString) {
 func printInfo(message string) {
 	printInfoF(message)
 }
+func printInfoStyledString(message StyledString) {
+	printInfoF("$TEXT", message)
+}
 
 // this removes formatting
 func printInfoF(message string, parts ...StyledString) {
@@ -343,12 +347,12 @@ func printToView(viewName string, message string) {
 		updatingView, err := g.View(viewName)
 		if err != nil {
 			return err
-		} else {
-			if config.Basics.UnicodeEmojis {
-				message = emojiUnicodeConvert(message)
-			}
-			fmt.Fprintf(updatingView, "%s\n", message)
 		}
+
+		if config.Basics.UnicodeEmojis {
+			message = emojiUnicodeConvert(message)
+		}
+		fmt.Fprintf(updatingView, "%s\n", message)
 		return nil
 	})
 }
@@ -459,21 +463,34 @@ func populateList() {
 
 // Formatting
 func formatMessageBody(body string) StyledString {
-	output := config.Colors.Message.Body.stylize(body)
+	message := config.Colors.Message.Body.stylize(body)
 
-	output = colorReplaceMentionMe(output)
-	output = output.colorRegex(`_[^_]*_`, config.Colors.Message.Body.withItalic())
-	output = output.colorRegex(`~[^~]*~`, config.Colors.Message.Body.withStrikethrough())
-	output = output.colorRegex(`@[\w_]*(\.[\w_]+)*`, config.Colors.Message.LinkKeybase)
+	message = colorReplaceMentionMe(message)
+	message = message.colorRegex(`_[^_]*_`, config.Colors.Message.Body.withItalic())
+	message = message.colorRegex(`~[^~]*~`, config.Colors.Message.Body.withStrikethrough())
+	message = message.colorRegex(`@[\w_]*([\.#][\w_]+)*`, config.Colors.Message.LinkKeybase)
 	// TODO change how bold, italic etc works, so it uses boldOn boldOff ([1m and [22m)
-	output = output.colorRegex(`\*[^\*]*\*`, config.Colors.Message.Body.withBold())
-	output = output.replaceString("```", "\n<code>\n")
-	// TODO make background color cover whole line
-	output = output.colorRegex("<code>(.*\n)*<code>", config.Colors.Message.Code)
-	output = output.colorRegex("`[^`]*`", config.Colors.Message.Code)
+	message = message.colorRegex(`\*[^\*]*\*`, config.Colors.Message.Body.withBold())
+	message = message.colorRegex(">.*$", config.Colors.Message.Quote)
+	message = message.regexReplaceFunc("```(.*\n)*```", func(match string) string {
+		maxWidth, _ := g.Size()
+		output := "\n"
+		match = strings.Replace(strings.Replace(match, "```", "<code>", -1), "\t", "  ", -1)
+		lines := strings.Split(match, "\n")
+		for _, line := range lines {
+			maxLineLength := maxWidth/2 + maxWidth/3 - 2
+			spaces := maxLineLength - utf8.RuneCountInString(line)
+			for i := 1; spaces < 0; i++ {
+				spaces = i*maxLineLength - utf8.RuneCountInString(line)
+			}
+			output += line + strings.Repeat(" ", spaces) + "\n"
+		}
+		return config.Colors.Message.Code.stylize(output).stringFollowedByStyle(message.style)
+	})
+	message = message.colorRegex("`[^`]*`", config.Colors.Message.Code)
 	// mention URL
-	output = output.colorRegex(`(https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*))`, config.Colors.Message.LinkURL)
-	return output
+	message = message.colorRegex(`(https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*))`, config.Colors.Message.LinkURL)
+	return message
 }
 
 // TODO use this more
@@ -497,7 +514,7 @@ func cleanChannelName(c string) string {
 	return strings.Replace(newChannelName, fmt.Sprintf(",%s", k.Username), "", 1)
 }
 
-func formatMessage(api keybase.ChatAPI, formatString string) string {
+func formatMessage(api keybase.ChatAPI, formatString string) StyledString {
 	ret := config.Colors.Message.Header.stylize("")
 	msgType := api.Msg.Content.Type
 	switch msgType {
@@ -527,14 +544,14 @@ func formatMessage(api keybase.ChatAPI, formatString string) string {
 		ret = ret.replace("$DATE", date)
 		ret = ret.replace("$TEAM", channelName)
 	}
-	return ret.string()
+	return ret
 }
 func formatOutput(api keybase.ChatAPI) string {
 	format := config.Formatting.OutputFormat
 	if stream {
 		format = config.Formatting.OutputStreamFormat
 	}
-	return formatMessage(api, format)
+	return formatMessage(api, format).string()
 }
 
 // End formatting
@@ -560,7 +577,7 @@ func handleMessage(api keybase.ChatAPI) {
 						if m.Text == k.Username {
 							// We are in a team
 							if topicName != channel.TopicName {
-								printInfo(formatMessage(api, config.Formatting.OutputMentionFormat))
+								printInfoStyledString(formatMessage(api, config.Formatting.OutputMentionFormat))
 								fmt.Print("\a")
 							}
 
@@ -569,7 +586,7 @@ func handleMessage(api keybase.ChatAPI) {
 					}
 				} else {
 					if msgSender != channel.Name {
-						printInfo(formatMessage(api, config.Formatting.PMFormat))
+						printInfoStyledString(formatMessage(api, config.Formatting.PMFormat))
 						fmt.Print("\a")
 					}
 
@@ -587,7 +604,7 @@ func handleMessage(api keybase.ChatAPI) {
 			if api.Msg.Channel.MembersType == keybase.TEAM {
 				printToView("Chat", formatOutput(api))
 			} else {
-				printToView("Chat", formatMessage(api, config.Formatting.PMFormat))
+				printToView("Chat", formatMessage(api, config.Formatting.PMFormat).string())
 			}
 		}
 	} else {
