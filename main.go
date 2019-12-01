@@ -466,16 +466,18 @@ func formatMessageBody(body string) StyledString {
 	message := config.Colors.Message.Body.stylize(body)
 
 	message = colorReplaceMentionMe(message)
-	message = message.colorRegex(`_[^_]*_`, config.Colors.Message.Body.withItalic())
-	message = message.colorRegex(`~[^~]*~`, config.Colors.Message.Body.withStrikethrough())
+	// TODO when gocui actually fixes there shit with formatting, then un comment these lines
+	//  message = message.colorRegex(`_[^_]*_`, config.Colors.Message.Body.withItalic())
+	//  message = message.colorRegex(`~[^~]*~`, config.Colors.Message.Body.withStrikethrough())
 	message = message.colorRegex(`@[\w_]*([\.#][\w_]+)*`, config.Colors.Message.LinkKeybase)
 	// TODO change how bold, italic etc works, so it uses boldOn boldOff ([1m and [22m)
 	message = message.colorRegex(`\*[^\*]*\*`, config.Colors.Message.Body.withBold())
-	message = message.colorRegex(">.*$", config.Colors.Message.Quote)
+	message = message.colorRegex("^>.*$", config.Colors.Message.Quote)
 	message = message.regexReplaceFunc("```(.*\n)*```", func(match string) string {
 		maxWidth, _ := g.Size()
 		output := "\n"
 		match = strings.Replace(strings.Replace(match, "```", "<code>", -1), "\t", "  ", -1)
+		match = removeFormatting(match)
 		lines := strings.Split(match, "\n")
 		for _, line := range lines {
 			maxLineLength := maxWidth/2 + maxWidth/3 - 2
