@@ -49,6 +49,8 @@ func main() {
 		RunCommand(os.Args...)
 
 	}
+	// Create map of users following users, to populate flags
+	go generateFollowersList()
 	fmt.Println("initKeybindings")
 	if err := initKeybindings(); err != nil {
 		fmt.Printf("%+v", err)
@@ -405,7 +407,7 @@ func populateChat() {
 			}
 			var apiCast keybase.ChatAPI
 			apiCast.Msg = &message.Msg
-			newMessage := formatOutput(apiCast)
+			newMessage := formatOutput(apiCast).string()
 			printMe = append(printMe, newMessage)
 		}
 	}
@@ -424,6 +426,7 @@ func populateList() {
 		log.Printf("%+v", err)
 	} else {
 		clearView("List")
+
 		var textBase = config.Colors.Channels.Basic.stylize("")
 		var recentPMs = textBase.append(config.Colors.Channels.Header.stylize("---[PMs]---\n"))
 		var recentPMsCount = 0
@@ -465,7 +468,9 @@ func populateList() {
 func formatMessageBody(body string) StyledString {
 	message := config.Colors.Message.Body.stylize(body)
 
+	message = message.colorRegex(`@[\w_]*([\.#][\w_]+)*`, config.Colors.Message.LinkKeybase)
 	message = colorReplaceMentionMe(message)
+
 	// TODO when gocui actually fixes there shit with formatting, then un comment these lines
 	//  message = message.colorRegex(`_[^_]*_`, config.Colors.Message.Body.withItalic())
 	//  message = message.colorRegex(`~[^~]*~`, config.Colors.Message.Body.withStrikethrough())
@@ -487,6 +492,7 @@ func formatMessageBody(body string) StyledString {
 			}
 			output += line + strings.Repeat(" ", spaces) + "\n"
 		}
+		// TODO stylize should remove formatting - in general everything should
 		return config.Colors.Message.Code.stylize(output).stringFollowedByStyle(message.style)
 	})
 	message = message.colorRegex("`[^`]*`", config.Colors.Message.Code)
@@ -517,43 +523,46 @@ func cleanChannelName(c string) string {
 }
 
 func formatMessage(api keybase.ChatAPI, formatString string) StyledString {
+	msg := api.Msg
 	ret := config.Colors.Message.Header.stylize("")
-	msgType := api.Msg.Content.Type
+	msgType := msg.Content.Type
 	switch msgType {
 	case "text", "attachment":
 		ret = config.Colors.Message.Header.stylize(formatString)
-		tm := time.Unix(int64(api.Msg.SentAt), 0)
-		var msg = formatMessageBody(api.Msg.Content.Text.Body)
+		tm := time.Unix(int64(msg.SentAt), 0)
+		var body = formatMessageBody(msg.Content.Text.Body)
 		if msgType == "attachment" {
-			msg = config.Colors.Message.Body.stylize("$TITLE\n$FILE")
-			attachment := api.Msg.Content.Attachment
-			msg = msg.replaceString("$TITLE", attachment.Object.Title)
-			msg = msg.replace("$FILE", config.Colors.Message.Attachment.stylize(fmt.Sprintf("[Attachment: %s]", attachment.Object.Filename)))
+			body = config.Colors.Message.Body.stylize("$TITLE\n$FILE")
+			attachment := msg.Content.Attachment
+			body = body.replaceString("$TITLE", attachment.Object.Title)
+			body = body.replace("$FILE", config.Colors.Message.Attachment.stylize(fmt.Sprintf("[Attachment: %s]", attachment.Object.Filename)))
 		}
 
-		user := colorUsername(api.Msg.Sender.Username)
-		device := config.Colors.Message.SenderDevice.stylize(api.Msg.Sender.DeviceName)
-		msgID := config.Colors.Message.ID.stylize(fmt.Sprintf("%d", api.Msg.ID))
+		user := colorUsername(msg.Sender.Username)
+		device := config.Colors.Message.SenderDevice.stylize(msg.Sender.DeviceName)
+		msgID := config.Colors.Message.ID.stylize(fmt.Sprintf("%d", msg.ID))
 		date := config.Colors.Message.Time.stylize(tm.Format(config.Formatting.DateFormat))
 		msgTime := config.Colors.Message.Time.stylize(tm.Format(config.Formatting.TimeFormat))
 
-		channelName := config.Colors.Message.ID.stylize(fmt.Sprintf("@%s#%s", api.Msg.Channel.Name, api.Msg.Channel.TopicName))
-		ret = ret.replace("$MSG", msg)
+		channelName := config.Colors.Message.ID.stylize(fmt.Sprintf("@%s#%s", msg.Channel.Name, msg.Channel.TopicName))
+		ret = ret.replace("$MSG", body)
 		ret = ret.replace("$USER", user)
 		ret = ret.replace("$DEVICE", device)
 		ret = ret.replace("$ID", msgID)
 		ret = ret.replace("$TIME", msgTime)
 		ret = ret.replace("$DATE", date)
 		ret = ret.replace("$TEAM", channelName)
+		ret = ret.replace("$TAGS", getUserFlags(api.Msg.Sender.Username))
 	}
 	return ret
 }
-func formatOutput(api keybase.ChatAPI) string {
+
+func formatOutput(api keybase.ChatAPI) StyledString {
 	format := config.Formatting.OutputFormat
 	if stream {
 		format = config.Formatting.OutputStreamFormat
 	}
-	return formatMessage(api, format).string()
+	return formatMessage(api, format)
 }
 
 // End formatting
@@ -596,7 +605,7 @@ func handleMessage(api keybase.ChatAPI) {
 			}
 			if api.Msg.Channel.MembersType == channel.MembersType && cleanChannelName(api.Msg.Channel.Name) == channel.Name {
 				if channel.MembersType == keybase.USER || channel.MembersType == keybase.TEAM && channel.TopicName == api.Msg.Channel.TopicName {
-					printToView("Chat", formatOutput(api))
+					printToView("Chat", formatOutput(api).string())
 					chat := k.NewChat(channel)
 					lastMessage.ID = api.Msg.ID
 					chat.Read(api.Msg.ID)
@@ -604,7 +613,7 @@ func handleMessage(api keybase.ChatAPI) {
 			}
 		} else {
 			if api.Msg.Channel.MembersType == keybase.TEAM {
-				printToView("Chat", formatOutput(api))
+				printToView("Chat", formatOutput(api).string())
 			} else {
 				printToView("Chat", formatMessage(api, config.Formatting.PMFormat).string())
 			}
