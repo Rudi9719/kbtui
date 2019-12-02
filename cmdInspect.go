@@ -30,7 +30,7 @@ func cmdInspect(cmd []string) {
 			go printMessage(id)
 
 		} else {
-			go printUser(strings.ReplaceAll(cmd[1], "@", ""))
+			go printUser(strings.Replace(cmd[1], "@", "", -1))
 		}
 
 	} else {
