@@ -49,8 +49,6 @@ func main() {
 		RunCommand(os.Args...)
 
 	}
-	// Create map of users following users, to populate flags
-	go generateFollowersList()
 	fmt.Println("initKeybindings")
 	if err := initKeybindings(); err != nil {
 		fmt.Printf("%+v", err)
