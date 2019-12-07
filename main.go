@@ -42,6 +42,7 @@ func main() {
 	defer g.Close()
 	g.SetManagerFunc(layout)
 	RunCommand("config", "load")
+	if dev { channel.TopicType = "dev" } else { channel.TopicType = "chat" }
 	go populateList()
 	go updateChatWindow()
 	if len(os.Args) > 1 {
@@ -381,6 +382,7 @@ func populateChat() {
 			if channel.Name == testChan.Name {
 				channel = testChan
 				channel.TopicName = "general"
+				if dev { channel.TopicType = "dev" } else { channel.TopicType = "chat" }
 			}
 		}
 		chat = k.NewChat(channel)
@@ -602,8 +604,9 @@ func handleMessage(api keybase.ChatAPI) {
 				}
 			}
 			if api.Msg.Channel.MembersType == channel.MembersType && cleanChannelName(api.Msg.Channel.Name) == channel.Name {
-				if channel.MembersType == keybase.USER || channel.MembersType == keybase.TEAM && channel.TopicName == api.Msg.Channel.TopicName {
-					printToView("Chat", formatOutput(api).string())
+				if channel.MembersType == keybase.USER || channel.MembersType == keybase.TEAM && channel.TopicName == api.Msg.Channel.TopicName &&
+					channel.TopicType == api.Msg.Channel.TopicType {
+					printToView("Chat", formatOutput(api))
 					chat := k.NewChat(channel)
 					lastMessage.ID = api.Msg.ID
 					chat.Read(api.Msg.ID)
