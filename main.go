@@ -464,6 +464,7 @@ func populateList() {
 
 // Formatting
 func formatMessageBody(body string) StyledString {
+	body = strings.Replace(body, "```", "\n<code>\n", -1)
 	message := config.Colors.Message.Body.stylize(body)
 
 	message = message.colorRegex(`@[\w_]*([\.#][\w_]+)*`, config.Colors.Message.LinkKeybase)
@@ -476,10 +477,10 @@ func formatMessageBody(body string) StyledString {
 	// TODO change how bold, italic etc works, so it uses boldOn boldOff ([1m and [22m)
 	message = message.colorRegex(`\*[^\*]*\*`, config.Colors.Message.Body.withBold())
 	message = message.colorRegex("^>.*$", config.Colors.Message.Quote)
-	message = message.regexReplaceFunc("```(.*\n)*```", func(match string) string {
+	message = message.regexReplaceFunc("\n<code>(.*\n)*<code>\n", func(match string) string {
 		maxWidth, _ := g.Size()
-		output := "\n"
-		match = strings.Replace(strings.Replace(match, "```", "<code>", -1), "\t", "  ", -1)
+		output := ""
+		match = strings.Replace(strings.Replace(match, "```", "\n<code>\n", -1), "\t", "  ", -1)
 		match = removeFormatting(match)
 		lines := strings.Split(match, "\n")
 		for _, line := range lines {
@@ -491,6 +492,7 @@ func formatMessageBody(body string) StyledString {
 			output += line + strings.Repeat(" ", spaces) + "\n"
 		}
 		// TODO stylize should remove formatting - in general everything should
+
 		return config.Colors.Message.Code.stylize(output).stringFollowedByStyle(message.style)
 	})
 	message = message.colorRegex("`[^`]*`", config.Colors.Message.Code)
