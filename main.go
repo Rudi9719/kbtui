@@ -569,6 +569,10 @@ func formatOutput(api keybase.ChatAPI) StyledString {
 
 // Input handling
 func handleMessage(api keybase.ChatAPI) {
+	if api.Error != nil {
+		printError(fmt.Sprintf("%+v", api.Error))
+		return
+	}
 	if _, ok := typeCommands[api.Msg.Content.Type]; ok {
 		if api.Msg.Channel.MembersType == channel.MembersType && cleanChannelName(api.Msg.Channel.Name) == channel.Name {
 			if channel.MembersType == keybase.TEAM && channel.TopicName != api.Msg.Channel.TopicName {
