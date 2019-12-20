@@ -22,10 +22,6 @@ jobs:
       run: |
         go get -v -t -d ./...
         go get github.com/magefile/mage
-        if [ -f Gopkg.toml ]; then
-            curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
-            dep ensure
-        fi
 
     - name: Build
       run: go run build.go buildbeta
