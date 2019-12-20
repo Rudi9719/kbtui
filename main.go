@@ -537,14 +537,29 @@ func formatMessage(api keybase.ChatAPI, formatString string) StyledString {
 			body = body.replaceString("$TITLE", attachment.Object.Title)
 			body = body.replace("$FILE", config.Colors.Message.Attachment.stylize(fmt.Sprintf("[Attachment: %s]", attachment.Object.Filename)))
 		}
+		reply := ""
+		if msg.Content.Text.ReplyTo != 0 {
+			chat := k.NewChat(channel)
+			replyMsg, replErr := chat.ReadMessage(msg.Content.Text.ReplyTo)
+			if replErr == nil {
+				replyUser := replyMsg.Result.Messages[0].Msg.Sender.Username
+				replyBody := ""
+				if replyMsg.Result.Messages[0].Msg.Content.Type == "text" {
+					replyBody = replyMsg.Result.Messages[0].Msg.Content.Text.Body
+				}
+				reply = fmt.Sprintf("\nReplyTo> %s: %s\n", replyUser, replyBody)
+			}
+		}
 
+		//printInfo(fmt.Sprintf("%d", msg.Content.Text.ReplyTo))
 		user := colorUsername(msg.Sender.Username)
 		device := config.Colors.Message.SenderDevice.stylize(msg.Sender.DeviceName)
 		msgID := config.Colors.Message.ID.stylize(fmt.Sprintf("%d", msg.ID))
 		date := config.Colors.Message.Time.stylize(tm.Format(config.Formatting.DateFormat))
 		msgTime := config.Colors.Message.Time.stylize(tm.Format(config.Formatting.TimeFormat))
-
+		c0ck := config.Colors.Message.Quote.stylize(reply)
 		channelName := config.Colors.Message.ID.stylize(fmt.Sprintf("@%s#%s", msg.Channel.Name, msg.Channel.TopicName))
+		ret = ret.replace("$REPL", c0ck)
 		ret = ret.replace("$MSG", body)
 		ret = ret.replace("$USER", user)
 		ret = ret.replace("$DEVICE", device)
@@ -569,8 +584,8 @@ func formatOutput(api keybase.ChatAPI) StyledString {
 
 // Input handling
 func handleMessage(api keybase.ChatAPI) {
-	if api.Error != nil {
-		printError(fmt.Sprintf("%+v", api.Error))
+	if api.ErrorListen != nil {
+		printError(fmt.Sprintf("%+v", api.ErrorListen))
 		return
 	}
 	if _, ok := typeCommands[api.Msg.Content.Type]; ok {

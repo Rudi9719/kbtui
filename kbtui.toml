@@ -8,7 +8,7 @@ cmd_prefix = "/"
 
 [formatting]
 # BASH-like PS1 variable equivalent
-output_format = "┌──[$USER@$DEVICE$TAGS] [$ID] [$DATE - $TIME]\n└╼ $MSG"
+output_format = "$REPL┌──[$USER@$DEVICE$TAGS] [$ID] [$DATE - $TIME]\n└╼ $MSG"
 output_stream_format = "┌──[$USER@$DEVICE$TAGS] [$ID] [$DATE - $TIME]\n└╼ $MSG"
 output_mention_format = "┌──[$USER@$DEVICE$TAGS] [$ID] [$DATE - $TIME]\n└╼ $MSG"
 pm_format = "PM from $USER@$DEVICE: $MSG"
