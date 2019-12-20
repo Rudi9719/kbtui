@@ -376,7 +376,7 @@ func populateChat() {
 	chat := k.NewChat(channel)
 	maxX, _ := g.Size()
 	api, err := chat.Read(maxX / 2)
-	if err != nil {
+	if err != nil || api.Result == nil {
 		for _, testChan := range channels {
 			if channel.Name == testChan.Name {
 				channel = testChan
