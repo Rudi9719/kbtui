@@ -26,6 +26,7 @@ jobs:
     - name: Build
       run: go run build.go buildbeta
     - name: Upload Artifact
+      if: matrix.platform != 'windows-latest'
       uses: actions/upload-artifact@v1.0.0
       with:
         name: kbtui-${{ matrix.platform }}-buildbeta
