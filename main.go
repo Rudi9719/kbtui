@@ -551,7 +551,6 @@ func formatMessage(api keybase.ChatAPI, formatString string) StyledString {
 			}
 		}
 
-		//printInfo(fmt.Sprintf("%d", msg.Content.Text.ReplyTo))
 		user := colorUsername(msg.Sender.Username)
 		device := config.Colors.Message.SenderDevice.stylize(msg.Sender.DeviceName)
 		msgID := config.Colors.Message.ID.stylize(fmt.Sprintf("%d", msg.ID))
