@@ -42,7 +42,11 @@ func main() {
 	defer g.Close()
 	g.SetManagerFunc(layout)
 	RunCommand("config", "load")
-	if dev { channel.TopicType = "dev" } else { channel.TopicType = "chat" }
+	if dev {
+		channel.TopicType = "dev"
+	} else {
+		channel.TopicType = "chat"
+	}
 	go populateList()
 	go updateChatWindow()
 	if len(os.Args) > 1 {
@@ -382,7 +386,11 @@ func populateChat() {
 			if channel.Name == testChan.Name {
 				channel = testChan
 				channel.TopicName = "general"
-				if dev { channel.TopicType = "dev" } else { channel.TopicType = "chat" }
+				if dev {
+					channel.TopicType = "dev"
+				} else {
+					channel.TopicType = "chat"
+				}
 			}
 		}
 		chat = k.NewChat(channel)
