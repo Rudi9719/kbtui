@@ -8,9 +8,9 @@ cmd_prefix = "/"
 
 [formatting]
 # BASH-like PS1 variable equivalent
-output_format = "┌──[$USER@$DEVICE] [$ID] [$DATE - $TIME]\n└╼ $MSG"
-output_stream_format = "┌──[$USER@$DEVICE] [$ID] [$DATE - $TIME]\n└╼ $MSG"
-output_mention_format = "┌──[$USER@$DEVICE] [$ID] [$DATE - $TIME]\n└╼ $MSG"
+output_format = "$REPL┌──[$USER@$DEVICE$TAGS] [$ID] [$DATE - $TIME]\n└╼ $MSG"
+output_stream_format = "┌──[$USER@$DEVICE$TAGS] [$ID] [$DATE - $TIME]\n└╼ $MSG"
+output_mention_format = "┌──[$USER@$DEVICE$TAGS] [$ID] [$DATE - $TIME]\n└╼ $MSG"
 pm_format = "PM from $USER@$DEVICE: $MSG"
 
 # 02 = Day, Jan = Month, 06 = Year
@@ -19,6 +19,8 @@ date_format = "02Jan06"
 # 15 = hours, 04 = minutes, 05 = seconds
 time_format = "15:04"
 
+icon_following_user = "[*]"
+icon_indirect_following_user = "[?]"
 
 [colors]
     [colors.channels]
@@ -31,43 +33,51 @@ time_format = "15:04"
         foreground = "green"
         italic = true
 
-    [colors.message]
-        [colors.message.body]
-        foreground = "normal"
-        [colors.message.header]
-        foreground = "grey"
-        bold = true
-        [colors.message.mention]
-        foreground = "green"
-        italic = true
-        bold = true
-        [colors.message.id]
-        foreground = "yellow"
-        [colors.message.time]
-        foreground = "magenta"
-        [colors.message.sender_default]
-        foreground = "cyan"
-        bold = true
-        [colors.message.sender_device]
-        foreground = "cyan"
-        [colors.message.attachment]
-        foreground = "red"
-        [colors.message.link_url]
-        foreground = "yellow"
-        [colors.message.link_keybase]
-        foreground = "yellow"
-        [colors.message.reaction]
-        foreground = "magenta"
-        bold = true
+	 [colors.message]
+		  [colors.message.body]
+		  foreground = "normal"
+		  [colors.message.header]
+		  foreground = "grey"
+		  bold = true
+		  [colors.message.mention]
+		  foreground = "green"
+		  italic = true
+		  bold = true
+		  [colors.message.id]
+		  foreground = "yellow"
+		  bold = true
+		  [colors.message.time]
+		  foreground = "magenta"
+		  bold = true
+		  [colors.message.sender_default]
+		  foreground = "cyan"
+		  bold = true
+		  [colors.message.sender_device]
+		  foreground = "cyan"
+		  bold = true
+		  [colors.message.sender_tags]
+		  foreground = "yellow"
+		  [colors.message.attachment]
+		  foreground = "red"
+		  [colors.message.link_url]
+		  foreground = "yellow"
+		  [colors.message.link_keybase]
+		  foreground = "cyan"
+		  [colors.message.reaction]
+		  foreground = "magenta"
+		  bold = true
         [colors.message.quote]
         foreground = "green"
-        [colors.message.code]
-        foreground = "green"
-        background = "grey"
-    [colors.feed]
-        [colors.feed.basic]
-        foreground = "grey"
-        [colors.feed.error]
-        foreground = "red"
+		  [colors.message.code]
+		  foreground = "cyan"
+		  background = "grey"
+
+	 [colors.feed]
+		  [colors.feed.basic]
+		  foreground = "grey"
+		  [colors.feed.error]
+		  foreground = "red"
+		  [colors.feed.success]
+		  foreground = "green"
         [colors.feed.file]
         foreground = "yellow"

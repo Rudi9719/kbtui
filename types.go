@@ -36,12 +36,14 @@ type Basics struct {
 
 // Formatting holds the 'formatting' section of the config file
 type Formatting struct {
-	OutputFormat        string `toml:"output_format"`
-	OutputStreamFormat  string `toml:"output_stream_format"`
-	OutputMentionFormat string `toml:"output_mention_format"`
-	PMFormat            string `toml:"pm_format"`
-	DateFormat          string `toml:"date_format"`
-	TimeFormat          string `toml:"time_format"`
+	OutputFormat           string `toml:"output_format"`
+	OutputStreamFormat     string `toml:"output_stream_format"`
+	OutputMentionFormat    string `toml:"output_mention_format"`
+	PMFormat               string `toml:"pm_format"`
+	DateFormat             string `toml:"date_format"`
+	TimeFormat             string `toml:"time_format"`
+	IconFollowingUser      string `toml:"icon_following_user"`
+	IconIndirectFollowUser string `toml:"icon_indirect_following_user"`
 }
 
 // Colors holds the 'colors' section of the config file
@@ -75,9 +77,11 @@ type Message struct {
 	Header        Style `toml:"header"`
 	Mention       Style `toml:"mention"`
 	ID            Style `toml:"id"`
+	Tags          Style `toml:"tags"`
 	Time          Style `toml:"time"`
 	SenderDefault Style `toml:"sender_default"`
 	SenderDevice  Style `toml:"sender_device"`
+	SenderTags    Style `toml:"sender_tags"`
 	Attachment    Style `toml:"attachment"`
 	LinkURL       Style `toml:"link_url"`
 	LinkKeybase   Style `toml:"link_keybase"`
@@ -88,7 +92,8 @@ type Message struct {
 
 // Feed holds the style information for various elements of the feed window
 type Feed struct {
-	Basic Style `toml:"basic"`
-	Error Style `toml:"error"`
-	File  Style `toml:"file"`
+	Basic   Style `toml:"basic"`
+	Error   Style `toml:"error"`
+	File    Style `toml:"file"`
+	Success Style `toml:"success"`
 }

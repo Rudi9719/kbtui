@@ -81,7 +81,7 @@ func cmdPopulateWall(cmd []string) {
 					apiCast.Msg = &api.Result.Messages[i].Msg
 					result[apiCast.Msg.SentAt] = apiCast
 					newMessage := formatOutput(apiCast)
-					printMe = append(printMe, newMessage)
+					printMe = append(printMe, newMessage.string())
 
 				}
 			}
@@ -96,7 +96,7 @@ func cmdPopulateWall(cmd []string) {
 	sort.Ints(keys)
 	time.Sleep(1 * time.Millisecond)
 	for _, k := range keys {
-		actuallyPrintMe += formatOutput(result[k]) + "\n"
+		actuallyPrintMe += formatOutput(result[k]).string() + "\n"
 	}
 	printToView("Chat", fmt.Sprintf("\n<Wall>\n\n%s\nYour wall query took %s\n</Wall>\n", actuallyPrintMe, time.Since(start)))
 }

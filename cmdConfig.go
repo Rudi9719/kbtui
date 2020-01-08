@@ -50,7 +50,7 @@ func cmdConfig(cmd []string) {
 
 func readConfig(filepath ...string) (*Config, error) {
 	var result = new(Config)
-	var configFile string
+	var configFile, path string
 	var env bool
 
 	// Load default config first, this way any values missing from the provided config file will remain the default value
@@ -61,8 +61,13 @@ func readConfig(filepath ...string) (*Config, error) {
 	case 0:
 		configFile, env = os.LookupEnv("KBTUI_CFG")
 		if !env {
-			configFile = "~/.config/kbtui.toml"
-			if _, err := os.Stat(configFile); os.IsNotExist(err) {
+			path, env = os.LookupEnv("HOME")
+			if env {
+				configFile = path + "/.config/kbtui.toml"
+				if _, err := os.Stat(configFile); os.IsNotExist(err) {
+					configFile = "kbtui.toml"
+				}
+			} else {
 				configFile = "kbtui.toml"
 			}
 		}
