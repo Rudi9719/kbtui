@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"sort"
 	"strings"
 	"time"
 
@@ -424,13 +425,16 @@ func populateList() {
 		log.Printf("%+v", err)
 	} else {
 		clearView("List")
-
+		conversationSlice := testVar.Result.Conversations
+		sort.SliceStable(conversationSlice, func(i, j int) bool {
+			return conversationSlice[i].ActiveAt > conversationSlice[j].ActiveAt
+		})
 		var textBase = config.Colors.Channels.Basic.stylize("")
 		var recentPMs = textBase.append(config.Colors.Channels.Header.stylize("---[PMs]---\n"))
 		var recentPMsCount = 0
 		var recentChannels = textBase.append(config.Colors.Channels.Header.stylize("---[Teams]---\n"))
 		var recentChannelsCount = 0
-		for _, s := range testVar.Result.Conversations {
+		for _, s := range conversationSlice {
 			channels = append(channels, s.Channel)
 			if s.Channel.MembersType == keybase.TEAM {
 				recentChannelsCount++
