@@ -363,7 +363,7 @@ func printToView(viewName string, message string) {
 func updateChatWindow() {
 
 	runOpts := keybase.RunOptions{
-		Dev: dev,
+		Dev: true,
 	}
 	k.Run(func(api keybase.ChatAPI) {
 		handleMessage(api)
@@ -604,11 +604,11 @@ func handleMessage(api keybase.ChatAPI) {
 			}
 			if api.Msg.Channel.MembersType == channel.MembersType && cleanChannelName(api.Msg.Channel.Name) == channel.Name {
 				if channel.MembersType == keybase.USER || channel.MembersType == keybase.TEAM && channel.TopicName == api.Msg.Channel.TopicName &&
-					channel.TopicType == api.Msg.Channel.TopicType {
-					printToView("Chat", formatOutput(api).string())
-					chat := k.NewChat(channel)
-					lastMessage.ID = api.Msg.ID
-					chat.Read(api.Msg.ID)
+					 (dev && api.Msg.Channel.TopicType == "dev" || !dev && api.Msg.Channel.TopicType == "chat") {
+						printToView("Chat", formatOutput(api).string())
+						chat := k.NewChat(channel)
+						lastMessage.ID = api.Msg.ID
+						chat.Read(api.Msg.ID)
 				}
 			}
 		} else {
