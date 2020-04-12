@@ -29,5 +29,4 @@ func cmdDev(cmd []string) {
     if (dev) { n = strings.Split(lastChat, "#")[0] } else { n = lastChat }
     cmdJoin([]string{"/join", n})
   }
-  //go updateChatWindow() // Otherwise you won't be able to process incoming messages.
 }
