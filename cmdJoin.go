@@ -41,6 +41,12 @@ func cmdJoin(cmd []string) {
 			channel.TopicName = ""
 			channel.MembersType = keybase.USER
 		}
+    if dev {
+        channel.TopicType = "dev"
+    } else {
+        channel.TopicType = "chat"
+    }
+
 		printInfoF("You are joining: $TEXT", config.Colors.Message.LinkKeybase.stylize(joinedName))
 		clearView("Chat")
 		setViewTitle("Input", fmt.Sprintf(" %s ", joinedName))

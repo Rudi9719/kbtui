@@ -42,7 +42,6 @@ func main() {
 	defer g.Close()
 	g.SetManagerFunc(layout)
 	RunCommand("config", "load")
-	if dev { channel.TopicType = "dev" } else { channel.TopicType = "chat" }
 	go populateList()
 	go updateChatWindow()
 	if len(os.Args) > 1 {
