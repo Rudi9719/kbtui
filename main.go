@@ -54,7 +54,7 @@ func main() {
 	if err := initKeybindings(); err != nil {
 		fmt.Printf("%+v", err)
 	}
-	if err := g.MainLoop(); err != nil && !gocui.IsQuit(err) {
+	if err := g.MainLoop(); err != nil && err != gocui.ErrQuit {
 		fmt.Printf("%+v", err)
 	}
 	go generateChannelTabCompletionSlice()
@@ -64,7 +64,7 @@ func main() {
 func layout(g *gocui.Gui) error {
 	maxX, maxY := g.Size()
 	if editView, err := g.SetView("Edit", maxX/2-maxX/3+1, maxY/2, maxX-2, maxY/2+10, 0); err != nil {
-		if !gocui.IsUnknownView(err) {
+		if err != gocui.ErrUnknownView {
 			return err
 		}
 		editView.Editable = true
@@ -72,7 +72,7 @@ func layout(g *gocui.Gui) error {
 		fmt.Fprintln(editView, "Edit window. Should disappear")
 	}
 	if feedView, err := g.SetView("Feed", maxX/2-maxX/3, 0, maxX-1, maxY/5, 0); err != nil {
-		if !gocui.IsUnknownView(err) {
+		if err != gocui.ErrUnknownView {
 			return err
 		}
 		feedView.Autoscroll = true
@@ -81,7 +81,7 @@ func layout(g *gocui.Gui) error {
 		printInfo("Feed Window - If you are mentioned or receive a PM it will show here")
 	}
 	if chatView, err2 := g.SetView("Chat", maxX/2-maxX/3, maxY/5+1, maxX-1, maxY-5, 0); err2 != nil {
-		if !gocui.IsUnknownView(err2) {
+		if err2 != gocui.ErrUnknownView {
 			return err2
 		}
 		chatView.Autoscroll = true
@@ -92,7 +92,7 @@ func layout(g *gocui.Gui) error {
 		RunCommand("help")
 	}
 	if inputView, err3 := g.SetView("Input", maxX/2-maxX/3, maxY-4, maxX-1, maxY-1, 0); err3 != nil {
-		if !gocui.IsUnknownView(err3) {
+		if err3 != gocui.ErrUnknownView {
 			return err3
 		}
 		if _, err := g.SetCurrentView("Input"); err != nil {
@@ -104,7 +104,7 @@ func layout(g *gocui.Gui) error {
 		g.Cursor = true
 	}
 	if listView, err4 := g.SetView("List", 0, 0, maxX/2-maxX/3-1, maxY-1, 0); err4 != nil {
-		if !gocui.IsUnknownView(err4) {
+		if err4 != gocui.ErrUnknownView {
 			return err4
 		}
 		listView.Title = "Channels"
@@ -271,7 +271,7 @@ func popupView(viewName string) {
 		if err != nil {
 			return err
 		}
-		updatingView.MoveCursor(0, 0, true)
+		updatingView.MoveCursor(0, 0)
 
 		return nil
 
@@ -290,7 +290,7 @@ func moveCursorToEnd(viewName string) {
 		y := stringLen / maxX
 		inputView.SetCursor(0, 0)
 		inputView.SetOrigin(0, 0)
-		inputView.MoveCursor(x, y, true)
+		inputView.MoveCursor(x, y)
 		return nil
 
 	})
