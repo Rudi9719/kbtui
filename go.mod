@@ -9,8 +9,6 @@ require (
 	github.com/magefile/mage v1.11.0
 	github.com/mattn/go-runewidth v0.0.13 // indirect
 	github.com/pelletier/go-toml v1.9.1
-	golang.org/x/sys v0.0.0-20210630005230-0f9fa26af87c // indirect
-	golang.org/x/term v0.0.0-20210615171337-6886f2dfbf5b // indirect
-	golang.org/x/text v0.3.6 // indirect
+	golang.org/x/text v0.3.8 // indirect
 	samhofi.us/x/keybase v1.0.0
 )
